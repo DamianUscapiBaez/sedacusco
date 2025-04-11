@@ -7,23 +7,23 @@ import { FiEdit2, FiTrash2, FiChevronLeft, FiChevronRight, FiSearch } from "reac
 import { RiResetRightFill } from "react-icons/ri";
 import React, { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PreCatastral } from "@/types/types";
+import { PreCatastralData } from "@/types/types";
 
 
 interface ApiResponse {
-  data: PreCatastral[];
+  data: PreCatastralData[];
   total: number;
 }
 
 interface Props {
-  onEdit: (data: PreCatastral) => void;
+  onEdit: (data: PreCatastralData) => void;
   onDelete: (id: number) => void;
   fetchData: (params: any) => Promise<ApiResponse>;
   refreshTrigger: number;
 }
 
 export default function PreCatastralTable({ onEdit, onDelete, fetchData, refreshTrigger }: Props) {
-  const [data, setData] = useState<PreCatastral[]>([]);
+  const [data, setData] = useState<PreCatastralData[]>([]);
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalRows, setTotalRows] = useState(0);
@@ -146,13 +146,13 @@ export default function PreCatastralTable({ onEdit, onDelete, fetchData, refresh
                 <TableRow key={item.id}>
                   <TableCell className="font-medium">{item.id}</TableCell>
                   <TableCell>{item.file_number}</TableCell>
-                  <TableCell>{item.customer.inscription}</TableCell>
-                  <TableCell>{item.customer.customer_name}</TableCell>
+                  <TableCell>{item.customer?.inscription || "N/A"}</TableCell>
+                  <TableCell>{item.customer?.customer_name || "N/A"}</TableCell>
                   <TableCell className="max-w-[200px] truncate">
-                    {item.customer.address}
+                    {item.customer?.address || "N/A"}
                   </TableCell>
-                  <TableCell>{item.property}</TableCell>
-                  <TableCell>{item.technician.name}</TableCell>
+                  <TableCell>{item.property || "N/A"}</TableCell>
+                  <TableCell>{item.technician?.name || "N/A"}</TableCell>
                   <TableCell className="flex justify-end gap-2">
                     <Button
                       variant="ghost"
@@ -165,7 +165,7 @@ export default function PreCatastralTable({ onEdit, onDelete, fetchData, refresh
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => onDelete(item.id)}
+                      onClick={() => item.id && onDelete(item.id)}
                       aria-label="Eliminar"
                     >
                       <FiTrash2 className="h-4 w-4 text-red-500" />

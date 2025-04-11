@@ -12,7 +12,7 @@ export default function ActPage() {
   const [editData, setEditData] = useState<any | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const handleOpenEdit = (data: any | null = null) => {
+  const handleOpenEdit = (data: { [key: string]: any } | null = null) => {
     setEditData(data);
     setOpen(true);
   };
@@ -48,7 +48,7 @@ export default function ActPage() {
       throw error;
     }
   };
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: { [key: string]: any }) => {
     try {
       const userResponse = await fetch("/api/auth/session");
       const session = await userResponse.json();

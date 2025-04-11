@@ -36,7 +36,7 @@ interface ApiResponse {
 interface Props {
   onEdit: (data: Act) => void;
   onDelete: (id: number) => void;
-  fetchData: (params: any) => Promise<ApiResponse>;
+  fetchData: (params: { page: number; limit: number; file?: string; inscription?: string }) => Promise<ApiResponse>;
   refreshTrigger: number;
 }
 

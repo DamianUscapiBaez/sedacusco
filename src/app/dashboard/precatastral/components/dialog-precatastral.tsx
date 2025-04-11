@@ -17,7 +17,6 @@ import * as z from "zod";
 import { FiX, FiSave, FiSearch, FiLoader } from "react-icons/fi";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
-import { PreCatastral } from "@/types/types";
 
 const precatastralSchema = z.object({
   file_number: z.string().min(1, "Número de ficha requerido").regex(/^\d+$/, "Solo se permiten números"),
@@ -45,7 +44,7 @@ const precatastralSchema = z.object({
 
 type PrecatastralForm = z.infer<typeof precatastralSchema> & { id?: number };
 
-export default function PreCatastralDialog({ open, onClose, editData, onSubmit }: { open: boolean; onClose: () => void; editData: PreCatastral | null; onSubmit: (data: PrecatastralForm) => void; }) {
+export default function PreCatastralDialog({ open, onClose, editData, onSubmit }: { open: boolean; onClose: () => void; editData: PrecatastralForm | null; onSubmit: (data: PrecatastralForm) => void; }) {
   const { register, handleSubmit, watch, setValue, control, reset, formState: { errors, isSubmitting } } = useForm<PrecatastralForm>({
     resolver: zodResolver(precatastralSchema),
     mode: "onChange"

@@ -1,6 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/libs/db";
-
+interface PreCatastralWhereInput {
+  file_number?: {
+    contains: string;
+  };
+  customer?: {
+    inscription?: {
+      contains: string;
+    };
+  };
+}
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -15,7 +24,7 @@ export async function GET(request: Request) {
     const inscription = searchParams.get("inscription");
 
     // Construir condiciones WHERE de manera segura
-    const where: any = {};
+    const where: PreCatastralWhereInput = {};
 
     if (file) {
       where.file_number = { contains: file }; // Corregido: acceso directo a file_number

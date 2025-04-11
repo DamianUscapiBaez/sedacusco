@@ -13,11 +13,10 @@ import { signIn } from "next-auth/react";
 
 export default function LoginPage() {
     const router = useRouter();
-    const { data: session, status } = useSession(); // ✅ Verificar sesión
+    const { status } = useSession(); 
     const { register, handleSubmit, formState: { errors } } = useForm();
     const [loading, setLoading] = useState(false);
 
-    // 🔥 Redirigir al dashboard si el usuario ya está autenticado
     useEffect(() => {
         if (status === "authenticated") {
             router.push("/dashboard");
@@ -69,7 +68,6 @@ export default function LoginPage() {
                             <PasswordInput {...register('password', { required: 'Contraseña requerida' })} placeholder='****************' className={`w-full py-2 px-4 border border-gray-600 rounded-md focus:outline-none focus:border-blue-500 ${errors.password ? 'border-red-500' : ''}`} />
                             {errors.password && <p className="text-sm text-red-500 mt-2">{errors.password.message?.toString()}</p>}
                         </div>
-                        {/* Botón de envío del formulario, deshabilitado mientras se carga */}
                         <Button type="submit" className='w-full py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-md transition-colors duration-300 ease-in-out' disabled={loading}>
                             {loading ? 'Cargando...' : 'Continuar'}
                         </Button>

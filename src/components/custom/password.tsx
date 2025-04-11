@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { cn } from "@/lib/utils";
 import { BsEye, BsEyeSlash } from "react-icons/bs"; // Importar los íconos de React Icons
 
-interface PasswordInputProps extends React.InputHTMLAttributes<HTMLInputElement> { }
+type PasswordInputProps = React.InputHTMLAttributes<HTMLInputElement>;
 
 const PasswordInput: React.ForwardRefRenderFunction<HTMLInputElement, PasswordInputProps> = (
     { className, ...props },

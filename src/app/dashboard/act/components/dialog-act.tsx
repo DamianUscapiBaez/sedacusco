@@ -125,7 +125,7 @@ export default function ActDialog({ open, onClose, editData, onSubmit }: { open:
         }
     };
 
-    const handleFormSubmit = async (data: any) => {
+    const handleFormSubmit = async (data: ActForm) => {
         setLoading((prev) => ({ ...prev, save: true })); // Activar loading
 
         try {
@@ -201,12 +201,12 @@ export default function ActDialog({ open, onClose, editData, onSubmit }: { open:
         setValue("meter_number", "");
         setValue("verification_code", "");
     }
-    const onError = (errors: any) => {
-        console.error("❌ Errores de validación:", errors);
-        Object.entries(errors).forEach(([key, value]) => {
-            console.log(`${key}:`, (value as any)?.message);
-        });
-    };
+    // const onError = (errors: any) => {
+    //     console.error("❌ Errores de validación:", errors);
+    //     Object.entries(errors).forEach(([key, value]) => {
+    //         console.log(`${key}:`, (value as any)?.message);
+    //     });
+    // };
     useEffect(() => {
         if (open) {
             if (editData?.id) {
