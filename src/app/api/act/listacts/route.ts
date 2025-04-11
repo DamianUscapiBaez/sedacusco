@@ -1,5 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/libs/db";
+// 1. Define los tipos para los filtros
+interface ActWhereInput {
+  file_number?: {
+    contains: string;
+  };
+  customer?: {
+    inscription?: {
+      contains: string;
+    };
+  };
+}
 
 export async function GET(request: Request) {
   try {
@@ -15,7 +26,7 @@ export async function GET(request: Request) {
     const inscription = searchParams.get("inscription");
 
     // Construir condiciones WHERE de manera segura
-    const where: any = {};
+    const where: ActWhereInput = {};
 
     if (file) {
       where.file_number = { contains: file };

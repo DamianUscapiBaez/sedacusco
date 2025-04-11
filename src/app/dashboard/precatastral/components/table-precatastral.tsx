@@ -7,23 +7,8 @@ import { FiEdit2, FiTrash2, FiChevronLeft, FiChevronRight, FiSearch } from "reac
 import { RiResetRightFill } from "react-icons/ri";
 import React, { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PreCatastral } from "@/types/types";
 
-interface PreCatastral {
-  id: number;
-  file_number: string;
-  property: string;
-  created_at: string;
-  customer: {
-    inscription: string;
-    customer_name: string;
-    meter_number: string;
-    address: string;
-  };
-  technician: {
-    dni: string;
-    name: string;
-  };
-}
 
 interface ApiResponse {
   data: PreCatastral[];
