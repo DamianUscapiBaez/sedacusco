@@ -1,0 +1,172 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Modelo de Usuarios
+model User {
+  id                   Int                   @id @default(autoincrement())
+  names                String?
+  username             String                @unique
+  password             String
+  status               String
+  roles                UserRole[]
+  // Relaciones
+  updatedActHistories  ActHistory[]
+  updatedPreCatastrals PreCatastralHistory[]
+}
+
+// Modelo de Roles
+model Role {
+  id          Int              @id @default(autoincrement())
+  name        String           @unique
+  description String?
+  users       UserRole[]
+  permissions RolePermission[]
+}
+
+// Modelo de Permisos
+model Permission {
+  id             Int              @id @default(autoincrement())
+  key            String           @unique
+  name           String
+  description    String
+  RolePermission RolePermission[]
+}
+
+// Tabla intermedia explícita para User-Role
+model UserRole {
+  userId    Int
+  roleId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  role      Role     @relation(fields: [roleId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@id([userId, roleId])
+}
+
+// Tabla intermedia explícita para Role-Permission
+model RolePermission {
+  id           Int        @id @default(autoincrement())
+  roleId       Int
+  permissionId Int
+  Role         Role       @relation(fields: [roleId], references: [id])
+  Permission   Permission @relation(fields: [permissionId], references: [id])
+}
+
+// Modelo de Clientes
+model Customer {
+  id            Int             @id @default(autoincrement())
+  inscription   String
+  address       String
+  customer_name String
+  old_meter     String
+  observation   String
+  acts          Act[]
+  preCatastrals PreCatastrals[]
+}
+
+// Modelo de Técnicos
+model Technician {
+  id            Int             @id @default(autoincrement())
+  dni           String
+  name          String
+  acts          Act[]
+  preCatastrals PreCatastrals[]
+}
+
+// Modelo de Renovación de Medidores
+model MeterRenovation {
+  id                Int    @id @default(autoincrement())
+  meter_number      String
+  verification_code String
+  acts              Act[]
+}
+
+// Modelo de Actas
+model Act {
+  id                           Int       @id @default(autoincrement())
+  lot                          String
+  file_number                  String
+  file_date                    DateTime  @db.Date
+  file_time                    DateTime? @db.Time
+  meterrenovation_id           Int
+  reading                      String
+  observations                 String
+  rotating_pointer             String
+  meter_security_seal          String
+  reading_impossibility_viewer String
+  customer_id                  Int
+  technician_id                Int
+  created_by                   Int
+  created_at                   DateTime  @default(now())
+
+  // Relaciones
+  customer   Customer        @relation(fields: [customer_id], references: [id])
+  meter      MeterRenovation @relation(fields: [meterrenovation_id], references: [id])
+  technician Technician      @relation(fields: [technician_id], references: [id])
+  histories  ActHistory[]
+}
+
+// Modelo de Precatastrales
+model PreCatastrals {
+  id                Int      @id @default(autoincrement())
+  file_number       String
+  property          String
+  located_box       String
+  buried_connection String
+  has_meter         String
+  reading           String
+  has_cover         String
+  cover_state       String
+  has_box           String
+  box_state         String
+  keys              String
+  cover_material    String
+  observations      String
+  customer_id       Int
+  technician_id     Int
+  created_at        DateTime @default(now())
+  is_located        String
+
+  // Relaciones
+  customer   Customer              @relation(fields: [customer_id], references: [id])
+  technician Technician            @relation(fields: [technician_id], references: [id])
+  histories  PreCatastralHistory[]
+}
+
+// Modelo de Historial de Actas
+model ActHistory {
+  id         Int      @id @default(autoincrement())
+  act_id     Int
+  action     String // CREATE, UPDATE, DELETE
+  details    String?
+  updated_by Int
+  updated_at DateTime @default(now())
+
+  act  Act  @relation(fields: [act_id], references: [id])
+  user User @relation(fields: [updated_by], references: [id])
+}
+
+// Modelo de Historial de Precatastrales
+model PreCatastralHistory {
+  id              Int      @id @default(autoincrement())
+  preCatastral_id Int
+  action          String // CREATE, UPDATE, DELETE
+  details         String?
+  updated_by      Int
+  updated_at      DateTime @default(now())
+
+  preCatastral PreCatastrals @relation(fields: [preCatastral_id], references: [id])
+  user         User          @relation(fields: [updated_by], references: [id])
+}
