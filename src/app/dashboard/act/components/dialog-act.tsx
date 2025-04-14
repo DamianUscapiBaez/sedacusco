@@ -18,7 +18,7 @@ const actSchema = z.object({
     file_number: z.string().min(1, "Número de ficha requerido").regex(/^\d+$/, "Solo se permiten números"),
     inscription_number: z.string().min(1, "Número de inscripción requerido").regex(/^\d+$/, "Solo se permiten números"),
     file_date: z.string(),
-    file_time: z.string().optional(),
+    file_time: z.string(),
     customer_id: z.number(),
     customer_name: z.string().min(1, "Nombre requerido"),
     customer_address: z.string().min(1, "Dirección requerida"),
