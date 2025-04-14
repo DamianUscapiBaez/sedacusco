@@ -1,17 +1,27 @@
-import { PrismaClient } from '@prisma/client';
+import { NextResponse } from "next/server";
+import { prisma } from "@/libs/db";
 
-const prisma = new PrismaClient();
-
-async function getTechnicians() {
+export async function GET(request: Request) {
   try {
-    const technicians = await prisma.technician.findMany();
-    return technicians;
+    const { searchParams } = new URL(request.url);
+
+    // Paginación
+    const page = Number(searchParams.get("page")) || 1;
+    const limit = Number(searchParams.get("limit")) || 10;
+    const skip = (page - 1) * limit;
+
+    // Consulta eficiente con transaction
+    const [data, total] = await prisma.$transaction([
+      prisma.technician.findMany({
+        skip,
+        take: limit,
+      }),
+      prisma.technician.count(),
+    ]);
+
+    return NextResponse.json({ data, total });
   } catch (error) {
-    console.error('Error obteniendo los técnicos:', error);
-  } finally {
-    await prisma.$disconnect();
+    console.error("Error in API:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
-
-// Llamada a la función
-getTechnicians();

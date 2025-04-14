@@ -29,7 +29,11 @@ export interface UserData {
     description?: string;
   }
 }
-
+export interface TechnicianData {
+  id: number;
+  dni: string;
+  name: string;
+}
 export interface ActData {
   id: number;
   file_number: string;

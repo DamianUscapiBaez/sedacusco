@@ -2,6 +2,7 @@
 import { SideNavItemGroup } from "@/types/types";
 import { BsHouseDoor } from "react-icons/bs";
 import { FaFileSignature, FaUserCog, FaUserFriends } from "react-icons/fa";
+import { MdEngineering } from "react-icons/md";
 
 export const FULL_MENU: SideNavItemGroup[] = [
     {
@@ -26,6 +27,12 @@ export const FULL_MENU: SideNavItemGroup[] = [
                 path: '/dashboard/user',
                 icon: <FaUserFriends size={20} />,
                 permission: 'users.manage' // Permiso requerido
+            },
+            {
+                title: 'Tecnicos',
+                path: '/dashboard/technician',
+                icon: <MdEngineering size={20} />,
+                permission: 'technician.manage' // Permiso requerido
             }
         ]
     },

@@ -19,6 +19,12 @@ async function main() {
       { key: 'users.update', name: 'Editar Usuarios', description: 'Modificar usuarios existentes' },
       { key: 'users.delete', name: 'Eliminar Usuarios', description: 'Eliminar usuarios del sistema' },
 
+      // Módulo de Precatastrales
+      { key: 'technician.manage', name: 'Gestión Tecnico', description: 'Administrar tecnicos' },
+      { key: 'technician.create', name: 'Crear Tecnicos', description: 'Crear nuevos tecnicos' },
+      { key: 'technician.update', name: 'Editar Tecnicos', description: 'Modificar tecnicos' },
+      { key: 'technician.delete', name: 'Eliminar Tecnicos', description: 'Eliminar tecnicos' },
+
       // Módulo de Actas
       { key: 'acts.manage', name: 'Gestión de Actas', description: 'Administrar actas del sistema' },
       { key: 'acts.create', name: 'Crear Actas', description: 'Crear nuevas actas' },
@@ -304,11 +310,6 @@ async function main() {
   console.log('📊 Datos creados:');
   console.log(`   - ${allPermissions.length} permisos`);
   console.log(`   - 3 roles (Administrador, Técnico, Consultor)`);
-  console.log(`   - 2 técnicos`);
-  console.log(`   - 2 clientes`);
-  console.log(`   - 2 medidores`);
-  console.log(`   - 2 actas`);
-  console.log(`   - 2 precatastrales`);
 }
 
 main()

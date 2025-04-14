@@ -8,6 +8,8 @@ const routePermissions: Record<string, string[]> = {
   '/dashboard/role': ['roles.manage'],
   '/dashboard/precatastral': ['precatastral.manage'],
   '/dashboard/acts': ['acts.manage'],
+  '/dashboard/technician': ['technician.manage'],
+
 };
 
 const publicRoutes = ['/', '/login'];
