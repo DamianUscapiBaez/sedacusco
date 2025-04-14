@@ -113,7 +113,9 @@ export default function ActTable({ onEdit, onDelete, fetchData, refreshTrigger }
             <TableRow>
               <TableHead>#</TableHead>
               <TableHead>N° Ficha</TableHead>
-              <TableHead>N° INSCRIPCION</TableHead>
+              <TableHead>N° Inscripción</TableHead>
+              <TableHead>Fecha</TableHead>
+              <TableHead>N° Ficha</TableHead>
               <TableHead>Usuario</TableHead>
               <TableHead>Dirección</TableHead>
               <TableHead>Nro Medidor</TableHead>
@@ -144,17 +146,18 @@ export default function ActTable({ onEdit, onDelete, fetchData, refreshTrigger }
             ) : (
               data.map((item) => (
                 <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.id}</TableCell>
-                  <TableCell>{item.file_number}</TableCell>
-                  <TableCell>{item.customer.inscription}</TableCell>
-                  <TableCell>{item.customer.customer_name}</TableCell>
-                  <TableCell className="max-w-[200px] truncate">
+                  <TableCell className="text-sm">{item.id}</TableCell>
+                  <TableCell className="text-sm">{item.file_number}</TableCell>
+                  <TableCell className="text-sm">{item.customer.inscription}</TableCell>
+                  <TableCell className="text-sm">{item.file_date}</TableCell>
+                  <TableCell className="text-sm">{item.customer.customer_name}</TableCell>
+                  <TableCell className="max-w-[150px] text-sm">
                     {item.customer.address}
                   </TableCell>
-                  <TableCell>{item.meter.meter_number}</TableCell>
-                  <TableCell>{item.meter.verification_code}</TableCell>
-                  <TableCell>{item.technician.name}</TableCell>
-                  <TableCell className="flex justify-end gap-2">
+                  <TableCell className="text-sm">{item.meter.meter_number}</TableCell>
+                  <TableCell className="text-sm">{item.meter.verification_code}</TableCell>
+                  <TableCell className="text-sm">{item.technician.name}</TableCell>
+                  <TableCell className="flex justify-end gap-2 text-sm">
                     <ActionButtons
                       onEdit={() => onEdit(item)}
                       onDelete={item.id ? () => onDelete(item.id) : undefined}

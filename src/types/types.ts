@@ -37,6 +37,7 @@ export interface TechnicianData {
 export interface ActData {
   id: number;
   file_number: string;
+  file_date: string;
   created_at: string;
   customer: {
     inscription: string;
