@@ -24,7 +24,7 @@ const actSchema = z.object({
     customer_address: z.string().min(1, "Dirección requerida"),
     old_meter: z.string().min(1, "Medidor Antiguo requerido"),
     reading: z.string().min(1, "Lectura requerida"),
-    observations: z.enum(["SIN OBSERVACIONES", "MEDIDOR PROFUNDO", "RECHADO", "BRONCE"]).optional(),
+    observations: z.enum(["SIN OBSERVACIONES", "MEDIDOR PROFUNDO", "RECHAZADO", "BRONCE"]).optional(),
     technician_id: z.number(),
     technician_dni: z.string().min(8, "DNI debe tener 8 dígitos").regex(/^\d+$/, "Solo números"),
     technician_name: z.string().min(1, "Nombre requerido"),
@@ -180,7 +180,7 @@ export default function ActDialog({ open, onClose, editData, onSubmit }: { open:
     };
 
     const clearFields = () => {
-        setValue("file_date", new Date().toISOString().split('T')[0]);
+        // setValue("file_date", new Date().toISOString().split('T')[0]);
         setValue("file_time", "");
         setValue("file_number", "");
         setValue("inscription_number", "");
@@ -489,7 +489,7 @@ export default function ActDialog({ open, onClose, editData, onSubmit }: { open:
                                                     <SelectContent>
                                                         <SelectItem value="SIN OBSERVACIONES">Sin Observaciones</SelectItem>
                                                         <SelectItem value="MEDIDOR PROFUNDO">Medidor profundo</SelectItem>
-                                                        <SelectItem value="RECHADO">Rechado</SelectItem>
+                                                        <SelectItem value="RECHAZADO">Rechazado</SelectItem>
                                                         <SelectItem value="BRONCE">Bronce</SelectItem>
                                                     </SelectContent>
                                                 </Select>
