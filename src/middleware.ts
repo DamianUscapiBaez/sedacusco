@@ -7,7 +7,7 @@ const routePermissions: Record<string, string[]> = {
   '/dashboard/user': ['users.manage'],
   '/dashboard/role': ['roles.manage'],
   '/dashboard/precatastral': ['precatastral.manage'],
-  '/dashboard/acts': ['acts.manage']
+  '/dashboard/acts': ['acts.manage'],
 };
 
 const publicRoutes = ['/', '/login'];
@@ -16,6 +16,7 @@ export const config = {
   matcher: [
     '/dashboard/:path*',
     '/register',
+    '/login', // Asegúrate de incluir '/login' en el matcher
   ],
 };
 
@@ -23,19 +24,18 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
-  // Usuario autenticado accediendo a rutas públicas
+  // Si el usuario está autenticado y está intentando acceder a una ruta pública como '/login', redirigirlo al dashboard
   if (token && publicRoutes.includes(pathname)) {
-    return NextResponse.redirect(new URL('/dashboard/:path*', req.url));
+    return NextResponse.redirect(new URL('/dashboard', req.url));
   }
 
-  // Rutas protegidas
-  if (!publicRoutes.includes(pathname)) {
-    // Usuario no autenticado
-    if (!token) {
-      return NextResponse.redirect(new URL('/login', req.url));
-    }
+  // Si el usuario no está autenticado y está intentando acceder a una ruta protegida
+  if (!token && !publicRoutes.includes(pathname)) {
+    return NextResponse.redirect(new URL('/login', req.url));
+  }
 
-    // Verificación de permisos
+  // Rutas protegidas, verificación de permisos
+  if (token && !publicRoutes.includes(pathname)) {
     const matchedRoute = Object.keys(routePermissions).find((route) =>
       pathname.startsWith(route)
     );

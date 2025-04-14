@@ -1,7 +1,6 @@
 "use client";
-import { useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useState } from "react";  // Asegúrate de importar useState
+import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,29 +12,9 @@ import { signIn } from "next-auth/react";
 
 export default function LoginPage() {
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const { status } = useSession();
+
     const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm();
 
-    // Redirige si ya está autenticado
-    useEffect(() => {
-        if (status === "authenticated") {
-            router.push("/dashboard");
-            return;
-        }
-
-        // Manejo de errores desde la URL
-        const error = searchParams.get('error');
-        if (error === 'SessionExpired') {
-            Swal.fire({
-                icon: "info",
-                title: "Sesión Expirada",
-                text: "Tu sesión ha caducado. Por favor inicia sesión nuevamente.",
-                timer: 3000,
-                showConfirmButton: false
-            });
-        }
-    }, [status, router, searchParams]);
 
     const onSubmit = handleSubmit(async (data) => {
         try {
