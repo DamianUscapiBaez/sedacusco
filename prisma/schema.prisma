@@ -20,7 +20,8 @@ model User {
   username             String                @unique
   password             String
   status               String
-  roles                UserRole[]
+  roleId               Int                   // Campo para la relación con Rol
+  role                 Role                  @relation(fields: [roleId], references: [id]) // Relación directa
   // Relaciones
   updatedActHistories  ActHistory[]
   updatedPreCatastrals PreCatastralHistory[]
@@ -31,10 +32,9 @@ model Role {
   id          Int              @id @default(autoincrement())
   name        String           @unique
   description String?
-  users       UserRole[]
+  users       User[]           // Relación inversa
   permissions RolePermission[]
 }
-
 // Modelo de Permisos
 model Permission {
   id             Int              @id @default(autoincrement())
@@ -42,17 +42,6 @@ model Permission {
   name           String
   description    String
   RolePermission RolePermission[]
-}
-
-// Tabla intermedia explícita para User-Role
-model UserRole {
-  userId    Int
-  roleId    Int
-  user      User     @relation(fields: [userId], references: [id])
-  role      Role     @relation(fields: [roleId], references: [id])
-  createdAt DateTime @default(now())
-
-  @@id([userId, roleId])
 }
 
 // Tabla intermedia explícita para Role-Permission

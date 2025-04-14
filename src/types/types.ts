@@ -1,20 +1,57 @@
 import { JSX } from "react";
 
-export type SideNavItem = {
+export interface SideNavItem {
   title: string;
   path: string;
-  icon?: JSX.Element;
+  icon: JSX.Element;
+  permission: string | null; // Added permission property
   submenu?: boolean;
-  subMenuItems?: SideNavItem[];
-};
+  subMenuItems?: { path: string; title: string }[];
+}
 
 export type SideNavItemGroup = {
   title: string;
   menuList: SideNavItem[]
 }
+export interface RoleData {
+  id: number;
+  name: string;
+  description?: string;
+}
+export interface UserData {
+  id: number;
+  names: string;
+  username: string;
+  password: string;
+  role: {
+    id: number;
+    name: string;
+    description?: string;
+  }
+}
+
+export interface ActData {
+  id: number;
+  file_number: string;
+  created_at: string;
+  customer: {
+    inscription: string;
+    customer_name: string;
+    meter_number: string;
+    address: string;
+  };
+  meter: {
+    meter_number: string;
+    verification_code: string;
+  };
+  technician: {
+    dni: string;
+    name: string;
+  };
+}
 
 export interface PreCatastralData {
-  id?: number;
+  id: number;
   file_number: string;
   property: string;
   located_box: string;
@@ -32,7 +69,7 @@ export interface PreCatastralData {
   customer_id: number;
   technician_id: number;
   created_at?: string | Date;
-  
+
   // Relaciones
   customer?: {
     id: number;
@@ -40,13 +77,13 @@ export interface PreCatastralData {
     address: string;
     inscription: string;
   };
-  
+
   technician?: {
     id: number;
     name: string;
     dni: string;
   };
-  
+
   histories?: Array<{
     id: number;
     action: string;

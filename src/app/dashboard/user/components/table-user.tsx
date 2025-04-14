@@ -1,45 +1,38 @@
 "use client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FiChevronLeft, FiChevronRight, FiSearch } from "react-icons/fi";
-import { RiResetRightFill } from "react-icons/ri";
-import React, { useEffect, useState, useCallback } from "react";
+import { FiEdit2, FiTrash2, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import React, { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PreCatastralData } from "@/types/types";
+import { UserData } from "@/types/types";
 import { ActionButtons } from "@/components/custom/ActionButtons";
 
 interface ApiResponse {
-  data: PreCatastralData[];
+  data: UserData[];
   total: number;
 }
 
 interface Props {
-  onEdit: (data: PreCatastralData) => void;
+  onEdit: (data: UserData) => void;
   onDelete: (id: number) => void;
-  fetchData: (params: any) => Promise<ApiResponse>;
+  fetchData: (params: { page: number; limit: number }) => Promise<ApiResponse>;
   refreshTrigger: number;
 }
 
-export default function PreCatastralTable({ onEdit, onDelete, fetchData, refreshTrigger }: Props) {
-  const [data, setData] = useState<PreCatastralData[]>([]);
+export default function UserTable({ onEdit, onDelete, fetchData, refreshTrigger }: Props) {
+  const [data, setData] = useState<UserData[]>([]);
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalRows, setTotalRows] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [searchByFile, setSearchByFile] = useState("");
-  const [searchByInscription, setSearchByInscription] = useState("");
 
-  // Memoizar la función de carga de datos
-  const loadData = useCallback(async () => {
+  const loadData = async () => {
     setLoading(true);
     try {
       const result = await fetchData({
         page,
-        limit: rowsPerPage,
-        file: searchByFile,
-        inscription: searchByInscription
+        limit: rowsPerPage
       });
       setData(result.data);
       setTotalRows(result.total);
@@ -48,27 +41,12 @@ export default function PreCatastralTable({ onEdit, onDelete, fetchData, refresh
     } finally {
       setLoading(false);
     }
-  }, [fetchData, page, rowsPerPage, searchByFile, searchByInscription]);
+  };
 
-  // Efecto para cargar datos
   useEffect(() => {
     loadData();
-  }, [loadData, refreshTrigger]);
+  }, [page, rowsPerPage, refreshTrigger]);
 
-  // Manejar búsqueda con debounce
-  const handleSearch = useCallback(() => {
-    setPage(1);
-    loadData();
-  }, [loadData]);
-
-  // Resetear filtros
-  const handleReset = useCallback(async () => {
-    setSearchByFile('');
-    setSearchByInscription('');
-    setPage(1);
-  }, []);
-
-  // Cambiar número de filas por página
   const handleRowsPerPageChange = (value: string) => {
     setRowsPerPage(Number(value));
     setPage(1);
@@ -78,44 +56,14 @@ export default function PreCatastralTable({ onEdit, onDelete, fetchData, refresh
 
   return (
     <div className="space-y-4">
-      {/* Filtros */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Input
-          placeholder="Filtrar por Nro. Ficha"
-          value={searchByFile}
-          onChange={(e) => setSearchByFile(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-        />
-        <Input
-          placeholder="Filtrar por Inscripción"
-          value={searchByInscription}
-          onChange={(e) => setSearchByInscription(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-        />
-        <Button onClick={handleSearch} className="flex items-center gap-2">
-          <FiSearch /> Buscar
-        </Button>
-        <Button
-          onClick={handleReset}
-          className="flex items-center gap-2"
-          variant="outline"
-        >
-          <RiResetRightFill /> Resetear
-        </Button>
-      </div>
-
-      {/* Tabla */}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>#</TableHead>
-              <TableHead>N° Ficha</TableHead>
-              <TableHead>N° Inscripción</TableHead>
-              <TableHead>Usuario</TableHead>
-              <TableHead>Dirección</TableHead>
-              <TableHead>Predio</TableHead>
-              <TableHead>Técnico</TableHead>
+              <TableHead>ID</TableHead>
+              <TableHead>Nombres</TableHead>
+              <TableHead>Nombre de Usuario</TableHead>
+              <TableHead>Rol</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
@@ -123,7 +71,7 @@ export default function PreCatastralTable({ onEdit, onDelete, fetchData, refresh
             {loading ? (
               Array.from({ length: 5 }).map((_, index) => (
                 <TableRow key={`skeleton-${index}`}>
-                  {Array.from({ length: 8 }).map((_, cellIdx) => (
+                  {Array.from({ length: 5 }).map((_, cellIdx) => (
                     <TableCell key={`skeleton-cell-${index}-${cellIdx}`}>
                       <Skeleton className="h-4 w-full" />
                     </TableCell>
@@ -132,30 +80,23 @@ export default function PreCatastralTable({ onEdit, onDelete, fetchData, refresh
               ))
             ) : data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8">
-                  {searchByFile || searchByInscription
-                    ? "No se encontraron resultados"
-                    : "No hay datos disponibles"}
+                <TableCell colSpan={5} className="text-center py-8">
+                  No hay datos disponibles
                 </TableCell>
               </TableRow>
             ) : (
               data.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell className="font-medium">{item.id}</TableCell>
-                  <TableCell>{item.file_number || "N/A"}</TableCell>
-                  <TableCell>{item.customer?.inscription || "N/A"}</TableCell>
-                  <TableCell>{item.customer?.customer_name || "N/A"}</TableCell>
-                  <TableCell className="max-w-[200px] truncate">
-                    {item.customer?.address || "N/A"}
-                  </TableCell>
-                  <TableCell>{item.property || "N/A"}</TableCell>
-                  <TableCell>{item.technician?.name || "N/A"}</TableCell>
+                  <TableCell>{item.names || "N/A"}</TableCell>
+                  <TableCell>{item.username || "N/A"}</TableCell>
+                  <TableCell>{item.role?.name || "N/A"}</TableCell>
                   <TableCell className="flex justify-end gap-2">
                     <ActionButtons
                       onEdit={() => onEdit(item)}
                       onDelete={item.id ? () => onDelete(item.id) : undefined}
-                      editPermission="precatastral.update"
-                      deletePermission="precatastral.delete"
+                      editPermission="users.update"
+                      deletePermission="users.delete"
                     />
                   </TableCell>
                 </TableRow>

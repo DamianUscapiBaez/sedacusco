@@ -1,4 +1,3 @@
-// lib/auth.config.ts
 import { NextAuthOptions, User as NextAuthUser } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/libs/db";
@@ -7,6 +6,7 @@ import bcrypt from "bcrypt";
 interface CustomUser extends NextAuthUser {
     id: string;
     username: string;
+    permissions: string[];
 }
 
 declare module "next-auth" {
@@ -14,6 +14,7 @@ declare module "next-auth" {
         user: {
             id: string;
             username: string;
+            permissions: string[];
         };
         expires: string;
     }
@@ -23,6 +24,7 @@ declare module "next-auth/jwt" {
     interface JWT {
         id: string;
         username: string;
+        permissions: string[];
         exp: number;
     }
 }
@@ -30,59 +32,83 @@ declare module "next-auth/jwt" {
 export const authOptions: NextAuthOptions = {
     providers: [
         CredentialsProvider({
+            name: "credentials",
             credentials: {
-                username: { label: "Username", type: "text", required: true },
-                password: { label: "Password", type: "password", required: true },
+                username: { label: "Username", type: "text", placeholder: "jsmith" },
+                password: { label: "Password", type: "password" },
             },
             async authorize(credentials) {
                 if (!credentials?.username || !credentials?.password) {
-                    throw new Error("⚠️ Usuario y contraseña son obligatorios.");
+                    throw new Error("Usuario y contraseña son obligatorios");
                 }
 
                 const user = await prisma.user.findUnique({
                     where: { username: credentials.username },
-                    select: { id: true, username: true, password: true },
+                    include: {
+                        role: {
+                            include: {
+                                permissions: {
+                                    include: {
+                                        Permission: true
+                                    }
+                                }
+                            }
+                        }
+                    }
                 });
 
                 if (!user) {
-                    throw new Error("❌ Usuario no encontrado.");
+                    throw new Error("Usuario no encontrado");
                 }
 
-                const isPasswordValid = bcrypt.compareSync(credentials.password, user.password);
+                const isPasswordValid = await bcrypt.compare(
+                    credentials.password,
+                    user.password
+                );
+
                 if (!isPasswordValid) {
-                    throw new Error("❌ Contraseña incorrecta.");
+                    throw new Error("Contraseña incorrecta");
                 }
 
-                return { id: String(user.id), username: user.username } as CustomUser;
+                const permissions = Array.from(new Set(
+                    (user.role?.permissions || []).map((rp: { Permission: { key: string } }) => rp.Permission.key)
+                ));
+
+                return { 
+                    id: String(user.id), 
+                    username: user.username,
+                    permissions
+                };
             },
         }),
     ],
     pages: {
-        signIn: "login",
+        signIn: "/login",
+        error: "/login",
     },
     session: {
         strategy: "jwt",
+        maxAge: 8 * 60 * 60,
     },
     callbacks: {
         async jwt({ token, user }) {
             if (user) {
-                const customUser = user as CustomUser;
-                token.id = customUser.id;
-                token.username = customUser.username;
+                token.id = user.id;
+                token.username = (user as CustomUser).username;
+                token.permissions = (user as CustomUser).permissions;
                 token.exp = Math.floor(Date.now() / 1000) + 8 * 60 * 60;
             }
             return token;
         },
         async session({ session, token }) {
-            if (!token.id || Date.now() / 1000 > token.exp) {
-                session.user = { id: "", username: "" };
-                session.expires = new Date(0).toISOString();
-                return session;
-            }
-            session.user = { id: token.id, username: token.username };
+            session.user = {
+                id: token.id,
+                username: token.username,
+                permissions: token.permissions
+            };
             session.expires = new Date(token.exp * 1000).toISOString();
             return session;
         },
     },
-    secret: process.env.NEXTAUTH_SECRET,
+    secret: process.env.NEXTAUTH_SECRET
 };

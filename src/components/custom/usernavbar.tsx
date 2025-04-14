@@ -6,9 +6,11 @@ import Swal from "sweetalert2";
 import { Button } from "../ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { useTheme } from "next-themes";
 
 export function UserNav() {
     const router = useRouter();
+    const { theme } = useTheme();
 
     const handleLogout = async () => {
         try {
@@ -18,7 +20,9 @@ export function UserNav() {
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Sí, cerrar sesión',
-                cancelButtonText: 'Cancelar'
+                cancelButtonText: 'Cancelar',
+                background: theme === 'dark' ? '#1e1e1e' : '#ffffff',
+                color: theme === 'dark' ? '#ffffff' : '#000000',
             });
 
             if (result.isConfirmed) {
@@ -28,7 +32,9 @@ export function UserNav() {
                     icon: 'success',
                     timer: 2000,
                     timerProgressBar: true,
-                    showConfirmButton: false
+                    showConfirmButton: false,
+                    background: theme === 'dark' ? '#1e1e1e' : '#ffffff',
+                    color: theme === 'dark' ? '#ffffff' : '#000000',
                 });
 
                 await signOut({ redirect: false }); 
@@ -40,7 +46,9 @@ export function UserNav() {
                 title: 'Error',
                 text: 'Ocurrió un error al cerrar sesión. Por favor, inténtalo de nuevo.',
                 icon: 'error',
-                confirmButtonText: 'Aceptar'
+                confirmButtonText: 'Aceptar',
+                background: theme === 'dark' ? '#1e1e1e' : '#ffffff',
+                color: theme === 'dark' ? '#ffffff' : '#000000',
             });
         }
     };

@@ -1,12 +1,24 @@
-'use client'
+// sidebar.tsx
+'use client';
 import React from 'react';
 import { useSideBarToggle } from '@/hooks/use-sidebar-toggle';
 import classNames from 'classnames';
-import { SIDENAV_ITEMS } from '@/app/dashboard/menu_constants';
+import { FULL_MENU, getFilteredMenu } from '@/app/dashboard/menu_constants';
 import SideBarMenuGroup from './sidebar-menu-group';
+import { useSession } from 'next-auth/react';
 
 function Sidebar() {
     const { toggleCollapse } = useSideBarToggle();
+    const { data: session } = useSession();
+
+    // Obtener permisos del usuario o array vacío si no hay sesión
+    const userPermissions = session?.user?.permissions || [];
+
+    // Filtrar el menú una sola vez basado en los permisos
+    const filteredMenu = React.useMemo(() =>
+        getFilteredMenu(userPermissions),
+        [userPermissions]
+    );
 
     const asideStyle = classNames(
         "sidebar overflow-y-auto overflow-x-auto fixed bg-sidebar h-full shadow-sm shadow-slate-500/40 transition duration-300 ease-in-out z-[12]",
@@ -28,7 +40,7 @@ function Sidebar() {
             </div>
             <nav className="flex flex-col gap-2 transition-all duration-700 ease-in-out">
                 <div className="flex flex-col gap-2 px-4">
-                    {SIDENAV_ITEMS.map((item, idx) => (
+                    {filteredMenu.map((item, idx) => (
                         <SideBarMenuGroup key={idx} menuGroup={item} />
                     ))}
                 </div>

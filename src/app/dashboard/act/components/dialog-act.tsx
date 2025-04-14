@@ -218,7 +218,7 @@ export default function ActDialog({ open, onClose, editData, onSubmit }: { open:
     }, [open, editData]);
     return (
         <Dialog open={open} maxWidth="xl" fullWidth>
-            <DialogTitle className="bg-gray-50 dark:bg-black dark:text-white relative flex items-center justify-between">
+            <DialogTitle className="sticky top-0 z-10 bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6">
                 {editData ? "✏️ Editar Acta" : "➕ Nueva Acta"}
                 <IconButton
                     aria-label="close"
@@ -234,7 +234,7 @@ export default function ActDialog({ open, onClose, editData, onSubmit }: { open:
                 </IconButton>
             </DialogTitle>
             <form onSubmit={handleSubmit(handleFormSubmit)}>
-                <DialogContent dividers className="bg-gray-50 dark:bg-black dark:text-white space-y-5" sx={{ maxHeight: "90vh", overflowY: "auto" }}>
+                <DialogContent dividers className="bg-gray-50 dark:bg-gray-900 dark:text-white space-y-5" sx={{ maxHeight: "90vh", overflowY: "auto" }}>
                     <div className="grid grid-cols-1 lg:grid-cols-[2fr_2fr] gap-4">
                         {/* Columna Izquierda - Datos Generales */}
                         <div className="space-y-4">
@@ -615,15 +615,21 @@ export default function ActDialog({ open, onClose, editData, onSubmit }: { open:
                         </div>
                     </div>
                 </DialogContent>
-                <DialogActions className="bg-gray-50 dark:bg-black dark:text-white " sx={{ flexDirection: "column", gap: 2, alignItems: "stretch", padding: 2 }}>
-                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-5 w-full">
-                        <Button variant="outline" onClick={onClose} type="button" className="w-full sm:w-auto">
-                            <FiX className="mr-2" /> Cancelar
+                <DialogActions className="sticky bottom-0 bg-gray-100 dark:bg-gray-800 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex flex-col sm:flex-row gap-3 w-full">
+                        <Button
+                            variant="outline"
+                            onClick={onClose}
+                            type="button"
+                            className="w-full sm:w-auto border-gray-300 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700"
+                        >
+                            <FiX className="mr-2" />
+                            Cancelar
                         </Button>
                         <Button
                             type="submit"
-                            className="w-full sm:w-auto"
-                            disabled={loading.save || isSubmitting} // Desactivar el botón si está enviando
+                            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white"
+                            disabled={loading.save || isSubmitting}
                         >
                             {loading.save || isSubmitting ? (
                                 <FiLoader className="mr-2 animate-spin" />

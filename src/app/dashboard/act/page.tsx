@@ -6,6 +6,7 @@ import { HiDocumentAdd } from "react-icons/hi";
 import ActDialog from "./components/dialog-act";
 import ActTable from "./components/table-act";
 import Swal from "sweetalert2";
+import { PermissionWrapper } from "@/components/custom/PermissionWrapper";
 
 export default function ActPage() {
   const [open, setOpen] = useState<boolean>(false);
@@ -91,7 +92,6 @@ export default function ActPage() {
       const result = await response.json();
 
       if (!response.ok) {
-        refreshTable();
         Swal.fire({
           icon: "error",
           title: "Error",
@@ -117,7 +117,7 @@ export default function ActPage() {
           popup: '!z-[99999]',
         },
       });
-
+      refreshTable();
     } catch (error) {
       console.error("❌ Error al guardar:", error);
       Swal.fire({
@@ -147,14 +147,17 @@ export default function ActPage() {
           <CardDescription className="text-justify">
             Gestiona las Actas de la aplicación. Crea, edita y elimina registros según tus necesidades.
           </CardDescription>
-          <div className="flex flex-row items-center justify-center md:justify-end gap-2 w-full mt-4">
-            <Button
-              className="bg-emerald-500 hover:bg-emerald-600 text-white w-full md:w-auto"
-              onClick={() => handleOpenEdit()}
-            >
-              <HiDocumentAdd className="mr-2 h-4 w-4" /> Nuevo Acta
-            </Button>
-          </div>
+          <PermissionWrapper permission="acts.create">
+            <div className="flex flex-row items-center justify-center md:justify-end gap-2 w-full mt-4">
+
+              <Button
+                className="bg-emerald-500 hover:bg-emerald-600 text-white w-full md:w-auto"
+                onClick={() => handleOpenEdit()}
+              >
+                <HiDocumentAdd className="mr-2 h-4 w-4" /> Nuevo Acta
+              </Button>
+            </div>
+          </PermissionWrapper>
         </CardHeader>
         <CardContent className="w-full overflow-visible">
           <ActTable

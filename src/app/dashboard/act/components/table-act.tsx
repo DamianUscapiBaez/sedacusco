@@ -3,45 +3,27 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FiEdit2, FiTrash2, FiChevronLeft, FiChevronRight, FiSearch } from "react-icons/fi";
+import { FiChevronLeft, FiChevronRight, FiSearch } from "react-icons/fi";
 import React, { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RiResetRightFill } from "react-icons/ri";
-
-interface Act {
-  id: number;
-  file_number: string;
-  created_at: string;
-  customer: {
-    inscription: string;
-    customer_name: string;
-    meter_number: string;
-    address: string;
-  };
-  meter: {
-    meter_number: string;
-    verification_code: string;
-  };
-  technician: {
-    dni: string;
-    name: string;
-  };
-}
+import { ActionButtons } from "@/components/custom/ActionButtons";
+import { ActData } from "@/types/types";
 
 interface ApiResponse {
-  data: Act[];
+  data: ActData[];
   total: number;
 }
 
 interface Props {
-  onEdit: (data: Act) => void;
+  onEdit: (data: ActData) => void;
   onDelete: (id: number) => void;
   fetchData: (params: { page: number; limit: number; file?: string; inscription?: string }) => Promise<ApiResponse>;
   refreshTrigger: number;
 }
 
 export default function ActTable({ onEdit, onDelete, fetchData, refreshTrigger }: Props) {
-  const [data, setData] = useState<Act[]>([]);
+  const [data, setData] = useState<ActData[]>([]);
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalRows, setTotalRows] = useState(0);
@@ -72,6 +54,7 @@ export default function ActTable({ onEdit, onDelete, fetchData, refreshTrigger }
   useEffect(() => {
     loadData();
   }, [page, rowsPerPage, refreshTrigger]);
+  
   const handleSearch = () => {
     setPage(1);
     loadData();
@@ -172,22 +155,12 @@ export default function ActTable({ onEdit, onDelete, fetchData, refreshTrigger }
                   <TableCell>{item.meter.verification_code}</TableCell>
                   <TableCell>{item.technician.name}</TableCell>
                   <TableCell className="flex justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onEdit(item)}
-                      aria-label="Editar"
-                    >
-                      <FiEdit2 className="h-4 w-4 text-blue-500" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onDelete(item.id)}
-                      aria-label="Eliminar"
-                    >
-                      <FiTrash2 className="h-4 w-4 text-red-500" />
-                    </Button>
+                    <ActionButtons
+                      onEdit={() => onEdit(item)}
+                      onDelete={item.id ? () => onDelete(item.id) : undefined}
+                      editPermission="acts.update"
+                      deletePermission="acts.delete"
+                    />
                   </TableCell>
                 </TableRow>
               ))
@@ -210,7 +183,7 @@ export default function ActTable({ onEdit, onDelete, fetchData, refreshTrigger }
               <SelectValue placeholder={rowsPerPage} />
             </SelectTrigger>
             <SelectContent side="top">
-              {[10, 20, 30, 40, 50].map((size) => (
+              {[10, 25, 50, 100].map((size) => (
                 <SelectItem key={size} value={size.toString()}>
                   {size}
                 </SelectItem>

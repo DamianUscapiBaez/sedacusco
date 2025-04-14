@@ -1,10 +1,10 @@
 "use client";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Swal from "sweetalert2";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
@@ -13,67 +13,150 @@ import { signIn } from "next-auth/react";
 
 export default function LoginPage() {
     const router = useRouter();
-    const { status } = useSession(); 
-    const { register, handleSubmit, formState: { errors } } = useForm();
-    const [loading, setLoading] = useState(false);
+    const searchParams = useSearchParams();
+    const { status } = useSession();
+    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm();
 
+    // Redirige si ya está autenticado
     useEffect(() => {
         if (status === "authenticated") {
             router.push("/dashboard");
+            return;
         }
-    }, [status, router]);
+
+        // Manejo de errores desde la URL
+        const error = searchParams.get('error');
+        if (error === 'SessionExpired') {
+            Swal.fire({
+                icon: "info",
+                title: "Sesión Expirada",
+                text: "Tu sesión ha caducado. Por favor inicia sesión nuevamente.",
+                timer: 3000,
+                showConfirmButton: false
+            });
+        }
+    }, [status, router, searchParams]);
 
     const onSubmit = handleSubmit(async (data) => {
-        setLoading(true);
-        const res = await signIn("credentials", {
-            username: data.username,
-            password: data.password,
-            redirect: false,
-        });
-
-        if (res?.error) {
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: "Credenciales incorrectas, inténtelo de nuevo.",
+        try {
+            const result = await signIn("credentials", {
+                username: data.username,
+                password: data.password,
+                redirect: false,
             });
-        } else {
-            Swal.fire({
+
+            if (result?.error) {
+                throw new Error(result.error);
+            }
+
+            await Swal.fire({
                 icon: "success",
                 title: "¡Bienvenido!",
                 text: "Inicio de sesión exitoso.",
                 timer: 1500,
-                showConfirmButton: false,
-            }).then(() => {
-                router.push("/dashboard");
-                router.refresh();
+                showConfirmButton: false
+            });
+
+            router.push("/dashboard");
+        } catch (error) {
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: error instanceof Error ? error.message : "Credenciales incorrectas"
             });
         }
-        setLoading(false);
     });
 
     return (
-        <div className="flex flex-col justify-center items-center min-h-screen">
-            <h2 className="text-2xl font-semibold mb-4 text-center mt-8">Iniciar sesión</h2>
-            <Card className="md:w-full sm:max-w-md shadow-md rounded-md overflow-hidden">
-                <CardContent className="p-6 sm:p-8">
-                    <form className="space-y-4" onSubmit={onSubmit}>
-                        <div>
-                            <Label htmlFor='username' className="block text-sm font-medium mb-3">Nombre de usuario o correo electrónico</Label>
-                            <Input {...register('username', { required: 'Nombre de usuario requerido' })} type='text' placeholder='Nombre de usuario' className={`w-full py-2 px-4 border border-gray-600 rounded-md focus:outline-none focus:border-blue-500 ${errors.username ? 'border-red-500' : ''}`} />
-                            {errors.username && <p className="text-sm text-red-500 mt-2">{errors.username.message?.toString()}</p>}
-                        </div>
-                        <div>
-                            <Label htmlFor='password' className="block text-sm font-medium mb-3">Contraseña</Label>
-                            <PasswordInput {...register('password', { required: 'Contraseña requerida' })} placeholder='****************' className={`w-full py-2 px-4 border border-gray-600 rounded-md focus:outline-none focus:border-blue-500 ${errors.password ? 'border-red-500' : ''}`} />
-                            {errors.password && <p className="text-sm text-red-500 mt-2">{errors.password.message?.toString()}</p>}
-                        </div>
-                        <Button type="submit" className='w-full py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-md transition-colors duration-300 ease-in-out' disabled={loading}>
-                            {loading ? 'Cargando...' : 'Continuar'}
-                        </Button>
-                    </form>
-                </CardContent>
-            </Card>
+        <div className={`flex min-h-screen flex-col items-center justify-center p-4 transition-colors duration-300`}>
+            <div className="w-full max-w-md space-y-8">
+                <div className="text-center">
+                    <h2 className="text-3xl font-bold tracking-tight transition-colors duration-300">
+                        Iniciar sesión
+                    </h2>
+                    <p className={`mt-2 text-sm transition-colors duration-300 `}>
+                        Ingresa tus credenciales para acceder al sistema
+                    </p>
+                </div>
+
+                <Card className={`transition-colors duration-300`}>
+                    <CardHeader>
+                        <CardTitle className={`transition-colors duration-300`}>
+                            Credenciales
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <form className="space-y-6" onSubmit={onSubmit}>
+                            <div>
+                                <Label className={`mb-2 transition-colors duration-300 `} htmlFor="username">
+                                    Nombre de usuario
+                                </Label>
+                                <Input
+                                    id="username"
+                                    {...register('username', {
+                                        required: 'Este campo es requerido',
+                                        minLength: {
+                                            value: 3,
+                                            message: 'Mínimo 3 caracteres'
+                                        }
+                                    })}
+                                    type="text"
+                                    placeholder="usuario123"
+                                    className="mt-1 transition-colors duration-300"
+                                    disabled={isSubmitting}
+                                />
+                                {errors.username && (
+                                    <p className="mt-1 text-sm text-red-500">
+                                        {errors.username.message?.toString()}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div>
+                                <Label className={`mb-2 transition-colors duration-300 `} htmlFor="password">
+                                    Contraseña
+                                </Label>
+                                <PasswordInput
+                                    id="password"
+                                    {...register('password', {
+                                        required: 'Este campo es requerido',
+                                        minLength: {
+                                            value: 6,
+                                            message: 'Mínimo 6 caracteres'
+                                        }
+                                    })}
+                                    placeholder="••••••••"
+                                    className={`mt-1 transition-colors duration-300 `}
+                                    disabled={isSubmitting}
+                                />
+                                {errors.password && (
+                                    <p className="mt-1 text-sm text-red-500">
+                                        {errors.password.message?.toString()}
+                                    </p>
+                                )}
+                            </div>
+
+                            <Button
+                                type="submit"
+                                className="w-full"
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? (
+                                    <span className="flex items-center justify-center">
+                                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Procesando...
+                                    </span>
+                                ) : (
+                                    "Iniciar sesión"
+                                )}
+                            </Button>
+                        </form>
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     );
 }

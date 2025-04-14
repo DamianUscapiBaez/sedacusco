@@ -24,6 +24,7 @@ export async function POST(request: Request) {
         username,
         password: hashedPassword,
         status: "ACTIVE",
+        role: { connect: { id: 2 } }, // Conexión con el rol por defecto (puedes cambiarlo según tu lógica)
       },
     });
 

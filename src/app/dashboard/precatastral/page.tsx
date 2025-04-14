@@ -6,6 +6,7 @@ import PreCatastralTable from "./components/table-precatastral";
 import PreCatastralDialog from "./components/dialog-precatastral";
 import { HiDocumentAdd } from "react-icons/hi";
 import Swal from "sweetalert2";
+import { PermissionWrapper } from "@/components/custom/PermissionWrapper";
 
 export default function PreCatastralPage() {
   const [open, setOpen] = useState<boolean>(false);
@@ -38,7 +39,7 @@ export default function PreCatastralPage() {
     }
   };
 
-  const handleOpenEdit = (data: any | null = null) => {
+  const handleOpenEdit = (data: { [key: string]: any } | null = null) => {
     setEditData(data);
     setOpen(true);
   };
@@ -95,7 +96,6 @@ export default function PreCatastralPage() {
       const result = await response.json();
 
       if (!response.ok) {
-        refreshTable();
         Swal.fire({
           icon: "error",
           title: "Error",
@@ -121,7 +121,7 @@ export default function PreCatastralPage() {
           popup: '!z-[99999]',
         },
       });
-
+      refreshTable();
     } catch (error) {
       console.error("❌ Error al guardar:", error);
       Swal.fire({
@@ -137,7 +137,10 @@ export default function PreCatastralPage() {
       });
     }
   };
-
+  const handleDelete = (id: number) => {
+    // Lógica para eliminar
+    console.log("Eliminar registro con ID:", id);
+  };
   return (
     <div className="mt-4 w-full max-w-[100vw] px-4">
       <Card className="w-full max-w-[100vw] mx-auto overflow-visible">
@@ -146,19 +149,21 @@ export default function PreCatastralPage() {
           <CardDescription className="text-justify">
             Gestiona los precatastros de la aplicación.
           </CardDescription>
-          <div className="flex flex-row items-center justify-center md:justify-end gap-2 w-full mt-4">
-            <Button
-              className="bg-emerald-500 hover:bg-emerald-600 text-white w-full md:w-auto"
-              onClick={() => handleOpenEdit(null)}
-            >
-              <HiDocumentAdd className="mr-2 h-4 w-4" /> Nuevo Pre Catastro
-            </Button>
-          </div>
+          <PermissionWrapper permission="precatastral.create">
+            <div className="flex flex-row items-center justify-center md:justify-end gap-2 w-full mt-4">
+              <Button
+                className="bg-emerald-500 hover:bg-emerald-600 text-white w-full md:w-auto"
+                onClick={() => handleOpenEdit(null)}
+              >
+                <HiDocumentAdd className="mr-2 h-4 w-4" /> Nuevo Pre Catastro
+              </Button>
+            </div>
+          </PermissionWrapper>
         </CardHeader>
         <CardContent className="w-full overflow-visible">
           <PreCatastralTable
+            onDelete={handleDelete}
             onEdit={handleOpenEdit}
-            onDelete={() => { }}
             fetchData={fetchData}
             refreshTrigger={refreshTrigger}
           />
