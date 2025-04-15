@@ -43,8 +43,7 @@ export async function GET(request: Request) {
         include: {
           customer: true,
           technician: true,
-        },
-        orderBy: { created_at: 'desc' },
+        }
       }),
       prisma.preCatastrals.count({ where }),
     ]);
