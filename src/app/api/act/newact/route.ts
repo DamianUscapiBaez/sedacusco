@@ -27,6 +27,7 @@ export async function POST(request: Request) {
         });
 
         if (fichaExistente) {
+            console.log(fichaExistente)
             return NextResponse.json(
                 { error: "Ya existe un registro con ese número de ficha." },
                 { status: 400 }
@@ -39,6 +40,7 @@ export async function POST(request: Request) {
         });
 
         if (inscripcionExistente) {
+            console.log(inscripcionExistente)
             return NextResponse.json(
                 { error: "Ya existe un registro con este cliente." },
                 { status: 400 }
@@ -52,6 +54,7 @@ export async function POST(request: Request) {
         });
 
         if (meterRenovation) {
+            console.log(meterRenovation)
             return NextResponse.json(
                 { error: "Ya existe un registro con este medidor." },
                 { status: 400 }
@@ -86,7 +89,6 @@ export async function POST(request: Request) {
                 }
             },
         });
-
         return NextResponse.json(newAct, { status: 201 });
     } catch (error) {
         console.error("Error en la API:", error);

@@ -93,8 +93,8 @@ export default function TechnicianTable({ onEdit, onDelete, fetchData, refreshTr
                                         <ActionButtons
                                             onEdit={() => onEdit(item)}
                                             onDelete={item.id ? () => onDelete(item.id) : undefined}
-                                            editPermission="users.update"
-                                            deletePermission="users.delete"
+                                            editPermission="technician.update"
+                                            deletePermission="technician.delete"
                                         />
                                     </TableCell>
                                 </TableRow>

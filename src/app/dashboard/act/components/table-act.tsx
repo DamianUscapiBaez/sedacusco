@@ -144,7 +144,7 @@ export default function ActTable({ onEdit, onDelete, fetchData, refreshTrigger }
       </div>
       {/* Tabla con scroll horizontal y cabecera fija */}
       <div className="rounded-md border relative">
-        <ScrollArea className="h-[calc(100vh-280px)] w-full">
+        <ScrollArea className="h-[calc(100vh-370px)] w-full">
           <Table className="table-fixed w-full">
             <TableHeader className="sticky top-0 bg-background z-10">
               <TableRow className="hover:bg-transparent">
@@ -195,13 +195,13 @@ export default function ActTable({ onEdit, onDelete, fetchData, refreshTrigger }
                           }
                         </Button>
                       </TableCell>
-                      <TableCell className="py-1 truncate">{item.file_number}</TableCell>
-                      <TableCell className="py-1 truncate">{item.customer.inscription}</TableCell>
-                      <TableCell className="py-1 truncate">{item.file_date}</TableCell>
-                      <TableCell className="py-1 truncate">{item.customer.customer_name}</TableCell>
-                      <TableCell className="py-1 truncate">{item.meter.meter_number}</TableCell>
-                      <TableCell className="py-1 truncate">{item.meter.verification_code}</TableCell>
-                      <TableCell className="py-1 truncate">{item.technician.name}</TableCell>
+                      <TableCell className="py-1 truncate text-xs">{item.file_number}</TableCell>
+                      <TableCell className="py-1 truncate text-xs">{item.customer.inscription}</TableCell>
+                      <TableCell className="py-1 truncate text-xs">{item.file_date}</TableCell>
+                      <TableCell className="py-1 truncate text-xs">{item.customer.customer_name}</TableCell>
+                      <TableCell className="py-1 truncate text-xs">{item.meter.meter_number}</TableCell>
+                      <TableCell className="py-1 truncate text-xs">{item.meter.verification_code}</TableCell>
+                      <TableCell className="py-1 truncate text-xs">{item.technician.name}</TableCell>
                       <TableCell className="py-1 flex justify-end gap-1">
                         <ActionButtons
                           onEdit={() => onEdit(item)}
@@ -212,30 +212,26 @@ export default function ActTable({ onEdit, onDelete, fetchData, refreshTrigger }
                       </TableCell>
                     </TableRow>
                     {expandedRows.includes(item.id) && (
-
                       <TableRow className="bg-muted/10 hover:bg-muted/20 transition-colors">
                         <TableCell colSpan={9} className="p-0">
-                          <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-sm">
+                          <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 text-xs">
                             {/* Información del Cliente */}
-                            <div className="space-y-2">
-                              <h4 className="font-medium text-base mb-3 pb-2 border-b border-muted-foreground/20">Información del Cliente</h4>
+                            <div className="space-y-2 col-span-1 md:col-span-2">
+                              <h4 className="font-medium text-xs mb-3 pb-2 border-b border-muted-foreground/20">Información del Cliente</h4>
                               <div className="grid grid-cols-5 gap-1">
                                 <span className="text-muted-foreground col-span-2">Dirección:</span>
-                                <span className="font-medium col-span-3 line-clamp-2" title={item.customer.address}>
+                                <span className="font-medium col-span-3 whitespace-pre-wrap break-words" title={item.customer.address}>
                                   {item.customer.address}
                                 </span>
-
                                 <span className="text-muted-foreground col-span-2">Medidor Antiguo:</span>
                                 <span className="font-medium col-span-3">{item.customer.old_meter}</span>
-
                                 <span className="text-muted-foreground col-span-2">Lectura:</span>
                                 <span className="font-medium col-span-3">{item.reading}</span>
                               </div>
                             </div>
-
                             {/* Detalles del Medidor */}
                             <div className="space-y-2">
-                              <h4 className="font-medium text-base mb-3 pb-2 border-b border-muted-foreground/20">Detalles del Medidor</h4>
+                              <h4 className="font-medium text-xs mb-3 pb-2 border-b border-muted-foreground/20">Detalles del Medidor</h4>
                               <div className="grid grid-cols-5 gap-1">
                                 <span className="text-muted-foreground col-span-2">Número:</span>
                                 <span className="font-medium col-span-3">{item.meter.meter_number}</span>
@@ -244,23 +240,22 @@ export default function ActTable({ onEdit, onDelete, fetchData, refreshTrigger }
                                 <span className="font-medium col-span-3">{item.meter.verification_code}</span>
                               </div>
                             </div>
-
                             {/* Historial */}
                             <div className="space-y-2">
-                              <h4 className="font-medium text-base mb-3 pb-2 border-b border-muted-foreground/20">Historial</h4>
+                              <h4 className="font-medium text-xs mb-3 pb-2 border-b border-muted-foreground/20">Historial</h4>
                               {item.histories && item.histories.length > 0 ? (
                                 <div className="space-y-4">
                                   {/* Creación */}
                                   <div className="space-y-1">
-                                    <div className="flex items-center gap-2 text-sm">
-                                      <span className="bg-primary/10 text-primary px-2 py-1 rounded-full text-xs">Creación</span>
-                                      <span className="text-muted-foreground text-xs">
+                                    <div className="flex items-center gap-2">
+                                      <span className="bg-primary/10 text-primary px-2 py-1 rounded-full">Creación</span>
+                                      <span className="text-muted-foreground">
                                         {item.histories.find(h => h.action === "CREATE")?.updated_at
                                           ? new Date(item.histories.find(h => h.action === "CREATE")?.updated_at ?? "").toLocaleDateString('es-PE', {
-                                              day: '2-digit',
-                                              month: 'short',
-                                              year: 'numeric'
-                                            })
+                                            day: '2-digit',
+                                            month: 'short',
+                                            year: 'numeric'
+                                          })
                                           : "N/A"}
                                       </span>
                                     </div>
@@ -273,24 +268,24 @@ export default function ActTable({ onEdit, onDelete, fetchData, refreshTrigger }
                                   {/* Actualización (si existe) */}
                                   {item.histories.some(h => h.action === "UPDATE") && (
                                     <div className="space-y-1">
-                                      <div className="flex items-center gap-2 text-sm">
-                                        <span className="bg-blue-100 text-blue-600 px-2 py-1 rounded-full text-xs">Actualización</span>
-                                        <span className="text-muted-foreground text-xs">
+                                      <div className="flex items-center gap-2">
+                                        <span className="bg-blue-100 text-blue-600 px-2 py-1 rounded-full">Actualización</span>
+                                        <span className="text-muted-foreground">
                                           {item.histories.find(h => h.action === "UPDATE")?.updated_at
                                             ? new Date(item.histories.find(h => h.action === "UPDATE")?.updated_at ?? "").toLocaleDateString('es-PE', {
-                                                day: '2-digit',
-                                                month: 'short',
-                                                year: 'numeric'
-                                              })
+                                              day: '2-digit',
+                                              month: 'short',
+                                              year: 'numeric'
+                                            })
                                             : "N/A"}
-                                          </span>
+                                        </span>
                                       </div>
                                       <p className="font-medium flex items-center gap-1">
                                         <UserIcon className="h-4 w-4 text-muted-foreground" />
                                         {item.histories.findLast(h => h.action === "UPDATE")?.user?.names || "N/A"}
                                       </p>
                                       {item.histories.findLast(h => h.action === "UPDATE")?.details && (
-                                        <div className="bg-muted/30 p-2 rounded text-sm mt-1">
+                                        <div className="bg-muted/30 p-2 rounded mt-1">
                                           <p className="text-muted-foreground font-medium">Detalles:</p>
                                           <p className="whitespace-pre-wrap">{item.histories.findLast(h => h.action === "UPDATE")?.details}</p>
                                         </div>
@@ -299,7 +294,7 @@ export default function ActTable({ onEdit, onDelete, fetchData, refreshTrigger }
                                   )}
                                 </div>
                               ) : (
-                                <div className="text-muted-foreground italic text-sm">No hay registros de historial</div>
+                                <div className="text-muted-foreground italic">No hay registros de historial</div>
                               )}
                             </div>
                           </div>
@@ -325,7 +320,7 @@ export default function ActTable({ onEdit, onDelete, fetchData, refreshTrigger }
             value={rowsPerPage.toString()}
             onValueChange={handleRowsPerPageChange}
           >
-            <SelectTrigger className="h-8 w-[70px]">
+            <SelectTrigger className="h-8 w-[80px]">
               <SelectValue placeholder={rowsPerPage} />
             </SelectTrigger>
             <SelectContent side="top">

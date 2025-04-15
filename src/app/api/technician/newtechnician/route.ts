@@ -10,7 +10,7 @@ export async function POST(request: Request) {
             name
         } = body;
 
-        // Verificar si el rol ya existe
+        // Verificar si el tecnico ya existe
         const existingTechnician = await prisma.technician.findFirst({
             where: { dni },
         });
@@ -21,18 +21,14 @@ export async function POST(request: Request) {
                 { status: 400 }
             );
         }
-        // Crear el rol junto con los permisos (transacción)
-        const nuevoTecnico = await prisma.$transaction(async (prisma) => {
-            // 1. Crear el rol
-            const role = await prisma.technician.create({
-                data: {
-                    dni,
-                    name
-                },
-            });
+        // 1. Crear el tecnico
+        const newTechnician = await prisma.technician.create({
+            data: {
+                dni,
+                name
+            },
         });
-
-        return NextResponse.json(nuevoTecnico, { status: 201 });
+        return NextResponse.json(newTechnician, { status: 201 });
     } catch (error) {
         console.error("Error en la API:", error);
         return NextResponse.json(

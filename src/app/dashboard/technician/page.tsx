@@ -137,8 +137,7 @@ export default function TechnicianPage() {
                     <CardDescription className="text-justify">
                         Gestiona los tecnicos de la aplicación.
                     </CardDescription>
-                    <PermissionWrapper permission="users.create">
-
+                    <PermissionWrapper permission="technician.create">
                         <div className="flex flex-row items-center justify-center md:justify-end gap-2 w-full mt-4">
                             <Button
                                 className="bg-emerald-500 hover:bg-emerald-600 text-white w-full md:w-auto"

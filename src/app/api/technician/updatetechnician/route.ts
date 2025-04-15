@@ -23,19 +23,14 @@ export async function PUT(request: Request) {
                 { status: 400 }
             );
         }
-
-        // Actualizar el rol y permisos (transacción)
-        const updatedTechnician = await prisma.$transaction(async (prisma) => {
-            // 1. Actualizar datos básicos del rol
-            const role = await prisma.technician.update({
-                where: { id },
-                data: {
-                    dni,
-                    name
-                },
-            });
+        // 1. Actualizar datos básicos del tecnico
+        const updatedTechnician = await prisma.technician.update({
+            where: { id },
+            data: {
+                dni,
+                name
+            },
         });
-
         return NextResponse.json(updatedTechnician, { status: 200 });
     } catch (error) {
         console.error("Error en la API:", error);
