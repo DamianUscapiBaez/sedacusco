@@ -97,8 +97,6 @@ model Act {
   reading_impossibility_viewer String
   customer_id                  Int
   technician_id                Int
-  created_at                   DateTime  @default(now())
-
   // Relaciones
   customer   Customer        @relation(fields: [customer_id], references: [id])
   meter      MeterRenovation @relation(fields: [meterrenovation_id], references: [id])
@@ -124,7 +122,6 @@ model PreCatastrals {
   observations      String
   customer_id       Int
   technician_id     Int
-  created_at        DateTime @default(now())
   is_located        String
 
   // Relaciones

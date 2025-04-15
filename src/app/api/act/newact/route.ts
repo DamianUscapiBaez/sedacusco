@@ -76,7 +76,6 @@ export async function POST(request: Request) {
                 customer: { connect: { id: customer_id } },  // Conexión con cliente
                 technician: { connect: { id: technician_id } }, // Conexión con técnico
                 meter: { connect: { id: meterrenovation_id } }, // Conexión con medidor
-                created_by, // Agregar el campo creado por
                 // ✅ Historial de la creación
                 histories: {
                     create: [
