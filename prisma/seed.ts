@@ -108,198 +108,198 @@ async function main() {
   });
 
   // 5. Crear técnicos de ejemplo
-  const technician1 = await prisma.technician.create({
-    data: {
-      dni: '12345678',
-      name: 'Juan Pérez',
-    }
-  });
+  // const technician1 = await prisma.technician.create({
+  //   data: {
+  //     dni: '12345678',
+  //     name: 'Juan Pérez',
+  //   }
+  // });
 
-  const technician2 = await prisma.technician.create({
-    data: {
-      dni: '87654321',
-      name: 'María García',
-    }
-  });
+  // const technician2 = await prisma.technician.create({
+  //   data: {
+  //     dni: '87654321',
+  //     name: 'María García',
+  //   }
+  // });
 
-  // 6. Crear clientes de ejemplo
-  const customer1 = await prisma.customer.create({
-    data: {
-      inscription: '012345678',
-      address: 'Calle Principal 123',
-      customer_name: 'Cliente Ejemplo 1',
-      old_meter: 'MET-001',
-      observation: 'Cliente preferencial'
-    }
-  });
+  // // 6. Crear clientes de ejemplo
+  // const customer1 = await prisma.customer.create({
+  //   data: {
+  //     inscription: '012345678',
+  //     address: 'Calle Principal 123',
+  //     customer_name: 'Cliente Ejemplo 1',
+  //     old_meter: 'MET-001',
+  //     observation: 'Cliente preferencial'
+  //   }
+  // });
 
-  const customer2 = await prisma.customer.create({
-    data: {
-      inscription: '098745632',
-      address: 'Avenida Central 456',
-      customer_name: 'Cliente Ejemplo 2',
-      old_meter: 'MET-002',
-      observation: 'Cliente preferencial'
-    }
-  });
+  // const customer2 = await prisma.customer.create({
+  //   data: {
+  //     inscription: '098745632',
+  //     address: 'Avenida Central 456',
+  //     customer_name: 'Cliente Ejemplo 2',
+  //     old_meter: 'MET-002',
+  //     observation: 'Cliente preferencial'
+  //   }
+  // });
 
-  const customer3 = await prisma.customer.create({
-    data: {
-      inscription: '098745633',
-      address: 'Avenida Central 456',
-      customer_name: 'Cliente Ejemplo 3',
-      old_meter: 'MET-003',
-      observation: 'Nuevo cliente'
-    }
-  });
-  const customer4 = await prisma.customer.create({
-    data: {
-      inscription: '098745631',
-      address: 'Avenida Central 456',
-      customer_name: 'Cliente Ejemplo 4',
-      old_meter: 'MET-004',
-      observation: 'Nuevo cliente'
-    }
-  });
+  // const customer3 = await prisma.customer.create({
+  //   data: {
+  //     inscription: '098745633',
+  //     address: 'Avenida Central 456',
+  //     customer_name: 'Cliente Ejemplo 3',
+  //     old_meter: 'MET-003',
+  //     observation: 'Nuevo cliente'
+  //   }
+  // });
+  // const customer4 = await prisma.customer.create({
+  //   data: {
+  //     inscription: '098745631',
+  //     address: 'Avenida Central 456',
+  //     customer_name: 'Cliente Ejemplo 4',
+  //     old_meter: 'MET-004',
+  //     observation: 'Nuevo cliente'
+  //   }
+  // });
 
-  // 7. Crear medidores de ejemplo
-  const meter1 = await prisma.meterRenovation.create({
-    data: {
-      meter_number: 'DA24000001',
-      verification_code: 'VC001'
-    }
-  });
+  // // 7. Crear medidores de ejemplo
+  // const meter1 = await prisma.meterRenovation.create({
+  //   data: {
+  //     meter_number: 'DA24000001',
+  //     verification_code: 'VC001'
+  //   }
+  // });
 
-  const meter2 = await prisma.meterRenovation.create({
-    data: {
-      meter_number: 'DA24000002',
-      verification_code: 'VC002'
-    }
-  });
-  const meter3 = await prisma.meterRenovation.create({
-    data: {
-      meter_number: 'DA24000003',
-      verification_code: 'VC003'
-    }
-  });
-  const meter4 = await prisma.meterRenovation.create({
-    data: {
-      meter_number: 'DA24000004',
-      verification_code: 'VC004'
-    }
-  });
-  // 8. Crear actas de ejemplo
-  const act1 = await prisma.act.create({
-    data: {
-      lot: '1',
-      file_number: '1001',
-      file_date: new Date("2025-04-11"), // Replace with a valid ISO 8601 date string
-      file_time: new Date().toISOString(),
-      meterrenovation_id: meter1.id,
-      reading: '129',
-      rotating_pointer: 'SI',
-      meter_security_seal: 'SI',
-      reading_impossibility_viewer: 'NO',
-      customer_id: customer1.id,
-      technician_id: technician1.id,
-      created_by: adminUser.id,
-      observations: 'SIN OBSERVACIONES',
-    }
-  });
+  // const meter2 = await prisma.meterRenovation.create({
+  //   data: {
+  //     meter_number: 'DA24000002',
+  //     verification_code: 'VC002'
+  //   }
+  // });
+  // const meter3 = await prisma.meterRenovation.create({
+  //   data: {
+  //     meter_number: 'DA24000003',
+  //     verification_code: 'VC003'
+  //   }
+  // });
+  // const meter4 = await prisma.meterRenovation.create({
+  //   data: {
+  //     meter_number: 'DA24000004',
+  //     verification_code: 'VC004'
+  //   }
+  // });
+  // // 8. Crear actas de ejemplo
+  // const act1 = await prisma.act.create({
+  //   data: {
+  //     lot: '1',
+  //     file_number: '1001',
+  //     file_date: new Date("2025-04-11"), // Replace with a valid ISO 8601 date string
+  //     file_time: new Date().toISOString(),
+  //     meterrenovation_id: meter1.id,
+  //     reading: '129',
+  //     rotating_pointer: 'SI',
+  //     meter_security_seal: 'SI',
+  //     reading_impossibility_viewer: 'NO',
+  //     customer_id: customer1.id,
+  //     technician_id: technician1.id,
+  //     created_by: adminUser.id,
+  //     observations: 'SIN OBSERVACIONES',
+  //   }
+  // });
 
-  await prisma.actHistory.create({
-    data: {
-      action: 'CREATE',
-      details: `Se creó la ficha con número: ${act1.file_number}`,
-      act_id: act1.id,
-      updated_by: adminUser.id
-    }
-  });
+  // await prisma.actHistory.create({
+  //   data: {
+  //     action: 'CREATE',
+  //     details: `Se creó la ficha con número: ${act1.file_number}`,
+  //     act_id: act1.id,
+  //     updated_by: adminUser.id
+  //   }
+  // });
 
-  const act2 = await prisma.act.create({
-    data: {
-      lot: '2',
-      file_number: '1002',
-      file_date: new Date("2025-04-11"), // Replace with a valid ISO 8601 date string
-      file_time: new Date().toISOString(),
-      reading: '541',
-      meterrenovation_id: meter2.id,
-      rotating_pointer: 'NO',
-      meter_security_seal: 'SI',
-      reading_impossibility_viewer: 'NO',
-      customer_id: customer2.id,
-      technician_id: technician2.id,
-      created_by: adminUser.id,
-      observations: 'SIN OBSERVACIONES',
-    }
-  });
+  // const act2 = await prisma.act.create({
+  //   data: {
+  //     lot: '2',
+  //     file_number: '1002',
+  //     file_date: new Date("2025-04-11"), // Replace with a valid ISO 8601 date string
+  //     file_time: new Date().toISOString(),
+  //     reading: '541',
+  //     meterrenovation_id: meter2.id,
+  //     rotating_pointer: 'NO',
+  //     meter_security_seal: 'SI',
+  //     reading_impossibility_viewer: 'NO',
+  //     customer_id: customer2.id,
+  //     technician_id: technician2.id,
+  //     created_by: adminUser.id,
+  //     observations: 'SIN OBSERVACIONES',
+  //   }
+  // });
 
-  await prisma.actHistory.create({
-    data: {
-      action: 'CREATE',
-      details: `Se creó la ficha con número: ${act2.file_number}`,
-      act_id: act2.id,
-      updated_by: adminUser.id
-    }
-  });
+  // await prisma.actHistory.create({
+  //   data: {
+  //     action: 'CREATE',
+  //     details: `Se creó la ficha con número: ${act2.file_number}`,
+  //     act_id: act2.id,
+  //     updated_by: adminUser.id
+  //   }
+  // });
 
   // 9. Crear precatastrales de ejemplo
-  const precatastral1 = await prisma.preCatastrals.create({
-    data: {
-      file_number: '2001',
-      property: 'DOMESTICO',
-      located_box: 'EXTERIOR',
-      buried_connection: 'NO',
-      has_meter: 'SI',
-      reading: '12345',
-      has_cover: 'SI',
-      cover_state: 'BUENO',
-      has_box: 'SI',
-      box_state: 'BUENO',
-      keys: '2',
-      cover_material: 'METAL',
-      is_located: 'SI',
-      customer_id: customer1.id,
-      technician_id: technician1.id,
-      observations: 'SIN OBSERVACIONES',
-    }
-  });
-  await prisma.preCatastralHistory.create({
-    data: {
-      action: 'CREATE',
-      details: `Se creó la ficha con número: ${precatastral1.file_number}`,
-      preCatastral_id: precatastral1.id,
-      updated_by: adminUser.id
-    }
-  });
-  const precatastral2 = await prisma.preCatastrals.create({
-    data: {
-      file_number: '2002',
-      property: 'COMERCIAL',
-      located_box: 'INTERIOR',
-      buried_connection: 'SI',
-      has_meter: 'SI',
-      reading: '54321',
-      has_cover: 'SI',
-      cover_state: 'MALO',
-      has_box: 'NO',
-      box_state: 'MALO',
-      keys: '1',
-      cover_material: 'PLASTICO',
-      is_located: 'SI',
-      customer_id: customer2.id,
-      technician_id: technician2.id,
-      observations: 'SIN OBSERVACIONES',
-    }
-  });
-  await prisma.preCatastralHistory.create({
-    data: {
-      action: 'CREATE',
-      details: `Se creó la ficha con número: ${precatastral2.file_number}`,
-      preCatastral_id: precatastral2.id,
-      updated_by: adminUser.id
-    }
-  });
+  // const precatastral1 = await prisma.preCatastrals.create({
+  //   data: {
+  //     file_number: '2001',
+  //     property: 'DOMESTICO',
+  //     located_box: 'EXTERIOR',
+  //     buried_connection: 'NO',
+  //     has_meter: 'SI',
+  //     reading: '12345',
+  //     has_cover: 'SI',
+  //     cover_state: 'BUENO',
+  //     has_box: 'SI',
+  //     box_state: 'BUENO',
+  //     keys: '2',
+  //     cover_material: 'METAL',
+  //     is_located: 'SI',
+  //     customer_id: customer1.id,
+  //     technician_id: technician1.id,
+  //     observations: 'SIN OBSERVACIONES',
+  //   }
+  // });
+  // await prisma.preCatastralHistory.create({
+  //   data: {
+  //     action: 'CREATE',
+  //     details: `Se creó la ficha con número: ${precatastral1.file_number}`,
+  //     preCatastral_id: precatastral1.id,
+  //     updated_by: adminUser.id
+  //   }
+  // });
+  // const precatastral2 = await prisma.preCatastrals.create({
+  //   data: {
+  //     file_number: '2002',
+  //     property: 'COMERCIAL',
+  //     located_box: 'INTERIOR',
+  //     buried_connection: 'SI',
+  //     has_meter: 'SI',
+  //     reading: '54321',
+  //     has_cover: 'SI',
+  //     cover_state: 'MALO',
+  //     has_box: 'NO',
+  //     box_state: 'MALO',
+  //     keys: '1',
+  //     cover_material: 'PLASTICO',
+  //     is_located: 'SI',
+  //     customer_id: customer2.id,
+  //     technician_id: technician2.id,
+  //     observations: 'SIN OBSERVACIONES',
+  //   }
+  // });
+  // await prisma.preCatastralHistory.create({
+  //   data: {
+  //     action: 'CREATE',
+  //     details: `Se creó la ficha con número: ${precatastral2.file_number}`,
+  //     preCatastral_id: precatastral2.id,
+  //     updated_by: adminUser.id
+  //   }
+  // });
 
   console.log('✅ Datos iniciales creados exitosamente!');
   console.log('----------------------------------------');
