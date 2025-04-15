@@ -39,10 +39,12 @@ export interface ActData {
   file_number: string;
   file_date: string;
   created_at: string;
+  created_by: string;
+  reading: string;
   customer: {
     inscription: string;
     customer_name: string;
-    meter_number: string;
+    old_meter: string;
     address: string;
   };
   meter: {
@@ -53,8 +55,19 @@ export interface ActData {
     dni: string;
     name: string;
   };
+  histories: ActHistory[]; // Array de objetos de historial
 }
-
+export interface ActHistory {
+  id: number;
+  action: 'CREATE' | 'UPDATE' | 'DELETE';
+  updated_at: string; // Nota: corrected from 'update_at' to match Prisma model
+  details?: string;
+  user: {
+    id: number;
+    names: string;
+    email?: string;
+  };
+}
 export interface PreCatastralData {
   id: number;
   file_number: string;

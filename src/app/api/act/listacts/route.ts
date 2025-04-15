@@ -1,12 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/libs/db";
-// 1. Define los tipos para los filtros
+
 interface ActWhereInput {
   file_number?: {
     contains: string;
   };
   customer?: {
     inscription?: {
+      contains: string;
+    };
+  };
+  meter?: {
+    meter_number?: {
       contains: string;
     };
   };
@@ -21,11 +26,12 @@ export async function GET(request: Request) {
     const limit = Number(searchParams.get("limit")) || 10;
     const skip = (page - 1) * limit;
 
-    // Filtros (ahora solo se aplican cuando se envía el botón de búsqueda)
+    // Filtros
     const file = searchParams.get("file");
     const inscription = searchParams.get("inscription");
+    const meter = searchParams.get("meter");
 
-    // Construir condiciones WHERE de manera segura
+    // Construir condiciones WHERE
     const where: ActWhereInput = {};
 
     if (file) {
@@ -35,8 +41,11 @@ export async function GET(request: Request) {
     if (inscription) {
       where.customer = { inscription: { contains: inscription } };
     }
+    if (meter) {
+      where.meter = { meter_number: { contains: meter } };
+    }
 
-    // Consulta eficiente con transaction
+    // Consulta con transaction
     const [data, total] = await prisma.$transaction([
       prisma.act.findMany({
         where,
@@ -44,16 +53,46 @@ export async function GET(request: Request) {
         take: limit,
         include: {
           customer: true,
-          meter: true, // Removed as it is not a valid property
+          meter: true,
           technician: true,
+          histories: {
+            select: {
+              id: true,
+              action: true,
+              updated_at: true,
+              user: {
+                select: {
+                  names: true
+                }
+              }
+              // incluye otros campos que necesites
+            },
+            orderBy: {
+              updated_at: 'desc'
+            }
+          }
         },
-        orderBy: { created_at: 'desc' }
+        orderBy: { id: 'desc' }
       }),
       prisma.act.count({ where })
     ]);
 
-    return NextResponse.json({ data, total });
+    // Función para formatear fechas
+    const formatDate = (date: Date | null) => {
+      return date ? new Date(date).toISOString().split('T')[0] : null;
+    };
 
+    // Formatear todas las fechas
+    const formattedData = data.map((record) => ({
+      ...record,
+      file_date: formatDate(record.file_date),
+      histories: record.histories?.map((history) => ({
+        ...history,
+        updated_at: formatDate(history.updated_at),
+      })),
+    }));
+
+    return NextResponse.json({ data: formattedData, total });
   } catch (error) {
     console.error("Error in API:", error);
     return NextResponse.json(

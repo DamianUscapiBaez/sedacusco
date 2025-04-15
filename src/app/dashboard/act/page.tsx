@@ -29,13 +29,15 @@ export default function ActPage() {
     limit?: number;
     file?: string;
     inscription?: string;
+    meter?: string;
   } = {}) => {
     try {
       const queryParams = new URLSearchParams({
         page: params.page?.toString() || "1",
         limit: params.limit?.toString() || "10",
         ...(params.file && { file: params.file }),
-        ...(params.inscription && { inscription: params.inscription })
+        ...(params.inscription && { inscription: params.inscription }),
+        ...(params.meter && { meter: params.meter })
       });
 
       const response = await fetch(

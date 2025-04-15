@@ -97,7 +97,6 @@ model Act {
   reading_impossibility_viewer String
   customer_id                  Int
   technician_id                Int
-  created_by                   Int
   created_at                   DateTime  @default(now())
 
   // Relaciones

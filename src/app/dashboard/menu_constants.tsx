@@ -43,13 +43,13 @@ export const FULL_MENU: SideNavItemGroup[] = [
                 title: 'Pre Catastros',
                 path: '/dashboard/precatastral',
                 icon: <FaFileSignature size={20} />,
-                permission: 'acts.manage' // Permiso requerido
+                permission: 'precatastral.manage' // Permiso requerido
             },
             {
                 title: 'Actas',
                 path: '/dashboard/act',
                 icon: <FaFileSignature size={20} />,
-                permission: 'precatastral.manage' // Permiso requerido
+                permission: 'acts.manage' // Permiso requerido
             }
         ]
     }
