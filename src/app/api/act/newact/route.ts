@@ -6,7 +6,7 @@ export async function POST(request: Request) {
         const body = await request.json();
 
         const {
-            lot,
+            lot_id,
             file_number,
             file_date,
             file_time,
@@ -27,7 +27,6 @@ export async function POST(request: Request) {
         });
 
         if (fichaExistente) {
-            console.log(fichaExistente)
             return NextResponse.json(
                 { error: "Ya existe un registro con ese número de ficha." },
                 { status: 400 }
@@ -40,9 +39,8 @@ export async function POST(request: Request) {
         });
 
         if (inscripcionExistente) {
-            console.log(inscripcionExistente)
             return NextResponse.json(
-                { error: "Ya existe un registro con este cliente." },
+                { error: `Ya existe la ficha ${inscripcionExistente?.file_number} con este cliente.` },
                 { status: 400 }
             );
         }
@@ -54,9 +52,8 @@ export async function POST(request: Request) {
         });
 
         if (meterRenovation) {
-            console.log(meterRenovation)
             return NextResponse.json(
-                { error: "Ya existe un registro con este medidor." },
+                { error: `Ya existe la ficha ${meterRenovation?.file_number} con este medidor.` },
                 { status: 400 }
             );
         }
@@ -64,7 +61,6 @@ export async function POST(request: Request) {
         // ✅ Si todo está bien, creamos el nuevo registro PreCatastral
         const newAct = await prisma.act.create({
             data: {
-                lot,
                 file_number,
                 file_date: new Date(file_date), // Convertir a fecha
                 file_time: file_time ? new Date(`1970-01-01T${file_time.padEnd(8, ':00').slice(0, 8)}Z`) : null,
@@ -73,10 +69,11 @@ export async function POST(request: Request) {
                 rotating_pointer,
                 meter_security_seal,
                 reading_impossibility_viewer,
-                customer: { connect: { id: customer_id } },  // Conexión con cliente
-                technician: { connect: { id: technician_id } }, // Conexión con técnico
-                meter: { connect: { id: meterrenovation_id } }, // Conexión con medidor
+                customer: { connect: { id: customer_id } }, // Connect customer relation
+                technician: { connect: { id: technician_id } }, // Connect technician relation
+                meter: { connect: { id: meterrenovation_id } }, // Connect meter relation
                 // ✅ Historial de la creación
+                lot: { connect: { id: Number(lot_id) } },
                 histories: {
                     create: [
                         {

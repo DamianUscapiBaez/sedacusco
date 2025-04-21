@@ -17,10 +17,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { FiX, FiSave, FiLoader } from "react-icons/fi";
 import { useEffect, useState } from "react";
-import Swal from "sweetalert2";
 import { RoleData } from "@/types/types";
-
-
 
 const UserSchema = z.object({
     names: z.string().optional(),
@@ -38,7 +35,7 @@ export default function UserDialog({ open, onClose, editData, onSubmit }: {
     editData: UserForm | null;
     onSubmit: (data: UserForm) => void;
 }) {
-    const { register, handleSubmit, watch, setValue, control, reset, formState: { errors, isSubmitting } } = useForm<UserForm>({
+    const { register, handleSubmit, setValue, control, reset, formState: { errors, isSubmitting } } = useForm<UserForm>({
         resolver: zodResolver(UserSchema),
         mode: "onChange"
     });

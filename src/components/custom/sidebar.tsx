@@ -3,7 +3,7 @@
 import React from 'react';
 import { useSideBarToggle } from '@/hooks/use-sidebar-toggle';
 import classNames from 'classnames';
-import { FULL_MENU, getFilteredMenu } from '@/app/dashboard/menu_constants';
+import { getFilteredMenu } from '@/app/dashboard/menu_constants';
 import SideBarMenuGroup from './sidebar-menu-group';
 import { useSession } from 'next-auth/react';
 

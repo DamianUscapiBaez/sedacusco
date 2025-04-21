@@ -24,7 +24,7 @@ interface Props {
   refreshTrigger: number;
 }
 
-export default function ActTable({ onEdit, onDelete, fetchData, refreshTrigger }: Props) {
+export default function LabeledTable({ onEdit, onDelete, fetchData, refreshTrigger }: Props) {
   const [data, setData] = useState<ActData[]>([]);
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);

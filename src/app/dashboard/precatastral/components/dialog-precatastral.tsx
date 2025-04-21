@@ -17,11 +17,13 @@ import * as z from "zod";
 import { FiX, FiSave, FiSearch, FiLoader } from "react-icons/fi";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
+import { LotData } from "@/types/types";
 
 const precatastralSchema = z.object({
   file_number: z.string().min(1, "Número de ficha requerido").regex(/^\d+$/, "Solo se permiten números"),
   inscription_number: z.string().min(1, "Número de inscripción requerido").regex(/^\d+$/, "Solo se permiten números"),
   customer_id: z.number(),
+  lot_id: z.string().min(1, "Lote es requerido"),
   customer_name: z.string().min(1, "Nombre requerido"),
   customer_address: z.string().min(1, "Dirección requerida"),
   property: z.enum(["COMERCIAL", "DOMESTICO"]),
@@ -41,16 +43,41 @@ const precatastralSchema = z.object({
   technician_dni: z.string().min(8, "DNI debe tener 8 dígitos").regex(/^\d+$/, "Solo números"),
   technician_name: z.string().min(1, "Nombre requerido")
 });
-
 type PrecatastralForm = z.infer<typeof precatastralSchema> & { id?: number };
 
-export default function PreCatastralDialog({ open, onClose, editData, onSubmit }: { open: boolean; onClose: () => void; editData: PrecatastralForm | null; onSubmit: (data: PrecatastralForm) => void; }) {
+const DEFAULT_VALUES: Partial<PrecatastralForm> = {
+  file_number: "",
+  inscription_number: "",
+  lot_id: "2",
+  property: "DOMESTICO",
+  is_located: "SI",
+  located_box: "EXTERIOR",
+  buried_connection: "NO",
+  has_meter: "SI",
+  has_box: "SI",
+  box_state: "BUENO",
+  has_cover: "SI",
+  cover_state: "BUENO",
+  cover_material: "",
+  keys: "2",
+  customer_id: 0,
+  customer_name: "",
+  customer_address: "",
+  technician_id: 0,
+  technician_name: "",
+  technician_dni: "",
+  observations: "SIN OBSERVACIONES",
+  reading: "",
+};
+
+export default function PreCatastralDialog({ open, onClose, editData, refreshTable }: { open: boolean; onClose: () => void; editData: PrecatastralForm | null; refreshTable: () => void; }) {
   const { register, handleSubmit, watch, setValue, control, reset, formState: { errors, isSubmitting } } = useForm<PrecatastralForm>({
     resolver: zodResolver(precatastralSchema),
-    mode: "onChange"
+    mode: "onChange",
+    defaultValues: DEFAULT_VALUES
   });
 
-
+  const [lots, setLots] = useState<LotData[]>([]);
   const [loading, setLoading] = useState({ inscription: false, technician: false, save: false });
 
   const showAlert = (title: string, text: string, icon: 'success' | 'error' | 'warning' | 'info') => {
@@ -65,6 +92,18 @@ export default function PreCatastralDialog({ open, onClose, editData, onSubmit }
         popup: '!z-[99999]',
       },
     });
+  };
+
+
+  const fetchLots = async () => {
+    try {
+      const response = await fetch("/api/lot/listlots");
+      if (!response.ok) throw new Error(`Error: ${response.status}`);
+      const data = await response.json();
+      setLots(data.data);
+    } catch (error) {
+      console.error("Error fetching roles:", error);
+    }
   };
 
   const handleSearch = async (type: 'inscription' | 'technician') => {
@@ -115,6 +154,80 @@ export default function PreCatastralDialog({ open, onClose, editData, onSubmit }
       setLoading((prev) => ({ ...prev, [type]: false }));
     }
   };
+
+  const handleSave = async (data: any) => {
+    setLoading((prev) => ({ ...prev, save: true }));
+    try {
+      // 1. Verificar sesión de usuario
+      const sessionResponse = await fetch("/api/auth/session");
+      if (!sessionResponse.ok) {
+        throw new Error("Error al obtener la sesión del usuario");
+      }
+
+      const session = await sessionResponse.json();
+      const userId = Number(session.user?.id);
+
+      if (!userId) {
+        showAlert(
+          "Error de autenticación",
+          "No se pudo identificar al usuario. Por favor, inicia sesión nuevamente.",
+          "error"
+        );
+        return;
+      }
+      // 2. Preparar payload
+      const payload = {
+        ...data,
+        [editData?.id ? "updated_by" : "created_by"]: userId,
+      };
+
+      const apiEndpoint = editData
+        ? `/api/precatastral/updateprecatastral?id=${editData?.id}` // URL de actualización
+        : "/api/precatastral/newprecatastral"; // URL de creación
+
+      const method = editData ? "PUT" : "POST"; // Método PUT si estamos actualizando
+
+      // 3. Enviar solicitud
+      const response = await fetch(apiEndpoint, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+
+      if (result?.error) {
+        showAlert("Error", result.error || "Algo salió mal al guardar.", "error");
+        return;
+      } else {
+        showAlert("¡Guardado exitosamente!", editData?.id
+          ? "El registro fue actualizado correctamente."
+          : "El registro fue creado correctamente.",
+          "success"
+        );
+
+        refreshTable();
+        if (!editData?.id) {
+          clearFields(); // Solo limpiar si es creación nueva
+        } else {
+          onClose(); // Cerrar diálogo si es edición
+        }
+      }
+    } catch (error: any) {
+      console.error("❌ Error al guardar:", error);
+      showAlert(
+        "Error",
+        error.message || "Ocurrió un error inesperado. Intenta nuevamente.",
+        "error"
+      );
+    } finally {
+      setLoading((prev) => ({ ...prev, save: false }));
+    }
+  };
+
   const handleEdit = async (id: number) => {
     try {
       const response = await fetch(`/api/precatastral/getprecatastral?id=${id}`);
@@ -145,22 +258,6 @@ export default function PreCatastralDialog({ open, onClose, editData, onSubmit }
     }
   };
 
-  const handleFormSubmit = async (data: any) => {
-    setLoading((prev) => ({ ...prev, save: true })); // Activar loading
-
-    try {
-      await onSubmit(data);
-      if (editData?.id) {
-        onClose(); // Si está editando, cierra el diálogo
-      }
-      clearFields(); // Limpiar campos después de guardar
-    } catch (error) {
-      console.error("Error al guardar:", error);
-    } finally {
-      setLoading((prev) => ({ ...prev, save: false })); // Desactivar loading
-    }
-  };
-
   const onError = (errors: any) => {
     console.error("❌ Errores de validación:", errors);
     // Muestra errores específicos
@@ -170,27 +267,7 @@ export default function PreCatastralDialog({ open, onClose, editData, onSubmit }
   };
 
   const clearFields = () => {
-    setValue("file_number", "");
-    setValue("inscription_number", "");
-    setValue("property", "DOMESTICO");
-    setValue("is_located", "SI");
-    setValue("located_box", "EXTERIOR");
-    setValue("buried_connection", "NO");
-    setValue("has_meter", "SI");
-    setValue("has_box", "SI");
-    setValue("box_state", "BUENO");
-    setValue("has_cover", "SI");
-    setValue("cover_state", "BUENO");
-    setValue("cover_material", "");
-    setValue("keys", "2");
-    setValue("customer_id", 0);
-    setValue("customer_name", "");
-    setValue("customer_address", "");
-    setValue("technician_id", 0);
-    setValue("technician_name", "");
-    setValue("technician_dni", "");
-    setValue("observations", "SIN OBSERVACIONES");
-    setValue("reading", "");
+    reset(DEFAULT_VALUES);
   };
 
 
@@ -201,6 +278,7 @@ export default function PreCatastralDialog({ open, onClose, editData, onSubmit }
       } else {
         clearFields();
       }
+      fetchLots();
     }
   }, [open, editData]);
   return (
@@ -220,7 +298,7 @@ export default function PreCatastralDialog({ open, onClose, editData, onSubmit }
           <CloseIcon />
         </IconButton>
       </DialogTitle>
-      <form onSubmit={handleSubmit(handleFormSubmit)}>
+      <form onSubmit={handleSubmit(handleSave)}>
         <DialogContent dividers className="bg-gray-50 dark:bg-gray-900 dark:text-white space-y-5" sx={{ maxHeight: "90vh", overflowY: "auto" }}>
           <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-3">
             {/* Columna Izquierda */}
@@ -264,7 +342,7 @@ export default function PreCatastralDialog({ open, onClose, editData, onSubmit }
                 </div>
                 <div className="col-span-1">
                   <Label>Ubicado</Label>
-                  <div className="flex items-center mt-1">
+                  <div className="flex items-center mt-2">
                     <Button
                       type="button"
                       variant={watch("is_located") === "SI" ? "default" : "outline"}
@@ -282,6 +360,36 @@ export default function PreCatastralDialog({ open, onClose, editData, onSubmit }
                       No
                     </Button>
                   </div>
+                </div>
+                <div className="col-s">
+                  <Label htmlFor="lot_id">Lote</Label>
+                  <Controller
+                    name="lot_id"
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        value={field.value} // Set default value to "2" if field.value is undefined
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          setValue("lot_id", value);
+                        }}
+                      >
+                        <SelectTrigger className={`w-full mt-2 ${errors.lot_id ? "border-red-500" : ""}`}>
+                          <SelectValue placeholder="Seleccione" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-60 overflow-auto">
+                          {lots.map((item) => (
+                            <SelectItem key={item.id} value={item.id.toString()} className="capitalize">
+                              {item.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.lot_id && (
+                    <p className="text-xs text-red-500 mt-1">{errors.lot_id.message}</p>
+                  )}
                 </div>
               </div>
               <div className="space-y-3">

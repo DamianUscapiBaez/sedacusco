@@ -29,7 +29,7 @@ export async function PUT(request: Request) {
         } = body;
 
         // ✅ Verifica si el registro con ese ID existe
-        const fichaExistente = await prisma.preCatastrals.findUnique({
+        const fichaExistente = await prisma.preCatastral.findUnique({
             where: { id },
         });
 
@@ -41,7 +41,7 @@ export async function PUT(request: Request) {
         }
 
         // ✅ Verifica si ya existe un registro con este número de ficha, excluyendo el registro actual
-        const fichaDuplicada = await prisma.preCatastrals.findFirst({
+        const fichaDuplicada = await prisma.preCatastral.findFirst({
             where: {
                 file_number,
                 NOT: { id },  // Excluye el registro actual
@@ -56,7 +56,7 @@ export async function PUT(request: Request) {
         }
 
         // ✅ Verifica si ya existe un registro con este cliente, excluyendo el registro actual
-        const inscripcionExistente = await prisma.preCatastrals.findFirst({
+        const inscripcionExistente = await prisma.preCatastral.findFirst({
             where: {
                 customer_id,
                 NOT: { id },  // Excluye el registro actual
@@ -71,7 +71,7 @@ export async function PUT(request: Request) {
         }
 
         // ✅ Si todo está bien, actualizamos el registro PreCatastral
-        const actualizadoPreCatastral = await prisma.preCatastrals.update({
+        const actualizadoPreCatastral = await prisma.preCatastral.update({
             where: { id },
             data: {
                 file_number,

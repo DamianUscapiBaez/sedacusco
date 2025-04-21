@@ -16,6 +16,7 @@ export async function GET(request: Request) {
                 skip,
                 take: limit,
                 include: { role: true },
+                orderBy: { id: 'desc' }
             }),
             prisma.user.count(),
         ]);

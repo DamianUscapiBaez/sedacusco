@@ -2,13 +2,13 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { HiDocumentAdd, HiUserAdd } from "react-icons/hi";
+import { HiUserAdd } from "react-icons/hi";
 import Swal from "sweetalert2";
-import UserDialog from "./components/dialog-user";
-import UserTable from "./components/table-user";
 import { PermissionWrapper } from "@/components/custom/PermissionWrapper";
+import LotTable from "./components/table-lot";
+import LotDialog from "./components/dialog-lot";
 
-export default function UserPage() {
+export default function LotPage() {
     const [open, setOpen] = useState<boolean>(false);
     const [editData, setEditData] = useState<any | null>(null);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -24,7 +24,7 @@ export default function UserPage() {
             });
 
             const response = await fetch(
-                `/api/user/listusers?${queryParams.toString()}`
+                `/api/lot/listlotall?${queryParams.toString()}`
             );
 
             if (!response.ok) throw new Error(`Error: ${response.status}`);
@@ -70,8 +70,8 @@ export default function UserPage() {
             }
 
             const apiEndpoint = editData
-                ? `/api/user/updateuser?id=${editData?.id}`  // URL de actualización
-                : "/api/user/newuser";  // URL de creación
+                ? `/api/lot/updatelot?id=${editData?.id}`  // URL de actualización
+                : "/api/lot/newlot";  // URL de creación
 
             const method = editData ? "PUT" : "POST";  // Método PUT si estamos actualizando
 
@@ -133,16 +133,16 @@ export default function UserPage() {
         <div className="mt-4 w-full max-w-[100vw] px-4">
             <Card className="w-full max-w-[100vw] mx-auto overflow-visible">
                 <CardHeader>
-                    <CardTitle className="text-2xl font-bold">Usuarios</CardTitle>
+                    <CardTitle className="text-2xl font-bold">Lotes</CardTitle>
                     <CardDescription className="grid grid-cols-1 md:grid-cols-2 items-center">
-                        <p>Gestiona los usuarios de la aplicación.</p>
-                        <PermissionWrapper permission="users.create">
+                        <p>Gestiona los lotes de la aplicación.</p>
+                        <PermissionWrapper permission="technician.create">
                             <div className="flex flex-row items-center justify-center md:justify-end gap-2 w-full mt-4">
                                 <Button
                                     className="bg-emerald-500 hover:bg-emerald-600 text-white w-full md:w-auto"
                                     onClick={() => handleOpenEdit(null)}
                                 >
-                                    <HiUserAdd className="mr-2 h-4 w-4" /> Nuevo Usuario
+                                    <HiUserAdd className="mr-2 h-4 w-4" /> Nuevo Lote
                                 </Button>
                             </div>
                         </PermissionWrapper>
@@ -150,7 +150,7 @@ export default function UserPage() {
 
                 </CardHeader>
                 <CardContent className="w-full overflow-visible">
-                    <UserTable
+                    <LotTable
                         onDelete={() => { }}
                         fetchData={fetchData}
                         refreshTrigger={refreshTrigger}
@@ -158,7 +158,7 @@ export default function UserPage() {
                     />
                 </CardContent>
             </Card>
-            <UserDialog
+            <LotDialog
                 open={open}
                 onClose={handleClose}
                 editData={editData}

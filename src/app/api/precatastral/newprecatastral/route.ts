@@ -22,11 +22,12 @@ export async function POST(request: Request) {
             customer_id,
             technician_id,
             is_located,
+            lot_id,
             created_by
         } = body;
 
         // ✅ Verifica si ya existe ese número de ficha
-        const fichaExistente = await prisma.preCatastrals.findFirst({
+        const fichaExistente = await prisma.preCatastral.findFirst({
             where: { file_number },
         });
 
@@ -38,19 +39,19 @@ export async function POST(request: Request) {
         }
 
         // ✅ Verifica si ya existe un registro con este cliente
-        const inscripcionExistente = await prisma.preCatastrals.findFirst({
+        const inscripcionExistente = await prisma.preCatastral.findFirst({
             where: { customer_id }
         });
 
         if (inscripcionExistente) {
             return NextResponse.json(
-                { error: "Ya existe un registro con este cliente." },
+                { error: `Ya existe la ficha ${inscripcionExistente?.file_number} con este cliente.` },
                 { status: 400 }
             );
         }
 
         // ✅ Si todo está bien, creamos el nuevo registro PreCatastral
-        const nuevoPreCatastral = await prisma.preCatastrals.create({
+        const nuevoPreCatastral = await prisma.preCatastral.create({
             data: {
                 file_number,
                 property,
@@ -68,6 +69,7 @@ export async function POST(request: Request) {
                 is_located,
                 customer: { connect: { id: customer_id } },  // Conexión con cliente
                 technician: { connect: { id: technician_id } }, // Conexión con técnico
+                lot: { connect: { id: Number(lot_id) } }, // Conexion con lot
                 // ✅ Historial de la creación
                 histories: {
                     create: [

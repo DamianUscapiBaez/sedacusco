@@ -5,24 +5,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import React, { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TechnicianData } from "@/types/types";
+import { LotData } from "@/types/types";
 import { ActionButtons } from "@/components/custom/ActionButtons";
-import { ScrollArea } from "@radix-ui/react-scroll-area";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ApiResponse {
-    data: TechnicianData[];
+    data: LotData[];
     total: number;
 }
 
 interface Props {
-    onEdit: (data: TechnicianData) => void;
+    onEdit: (data: LotData) => void;
     onDelete: (id: number) => void;
     fetchData: (params: { page: number; limit: number }) => Promise<ApiResponse>;
     refreshTrigger: number;
 }
 
-export default function TechnicianTable({ onEdit, onDelete, fetchData, refreshTrigger }: Props) {
-    const [data, setData] = useState<TechnicianData[]>([]);
+export default function LotTable({ onEdit, onDelete, fetchData, refreshTrigger }: Props) {
+    const [data, setData] = useState<LotData[]>([]);
     const [page, setPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [totalRows, setTotalRows] = useState(0);
@@ -63,8 +63,10 @@ export default function TechnicianTable({ onEdit, onDelete, fetchData, refreshTr
                         <TableHeader className="sticky top-0 bg-background z-10 shadow-md">
                             <TableRow className="hover:bg-transparent">
                                 <TableHead className="px-4 py-2">#</TableHead>
-                                <TableHead className="px-4 py-2">DNI</TableHead>
-                                <TableHead className="px-4 py-2">NOMBRES</TableHead>
+                                <TableHead className="px-4 py-2">NOMBRE DE LOTE</TableHead>
+                                <TableHead className="px-4 py-2">FECHA INICIO</TableHead>
+                                <TableHead className="px-4 py-2">FECHA FINAL</TableHead>
+                                <TableHead className="px-4 py-2">ESTADO</TableHead>
                                 <TableHead className="px-4 py-2 text-right">Acciones</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -72,8 +74,8 @@ export default function TechnicianTable({ onEdit, onDelete, fetchData, refreshTr
                             {loading ? (
                                 Array.from({ length: 5 }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`}>
-                                        {Array.from({ length: 4 }).map((_, cellIdx) => (
-                                            <TableCell key={`skeleton-cell-${index}-${cellIdx}`} className="px-4 py-2">
+                                        {Array.from({ length: 5 }).map((_, cellIdx) => (
+                                            <TableCell key={`skeleton-cell-${index}-${cellIdx}`}>
                                                 <Skeleton className="h-4 w-full" />
                                             </TableCell>
                                         ))}
@@ -81,7 +83,7 @@ export default function TechnicianTable({ onEdit, onDelete, fetchData, refreshTr
                                 ))
                             ) : data.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={4} className="text-center py-8">
+                                    <TableCell colSpan={5} className="text-center py-8">
                                         No hay datos disponibles
                                     </TableCell>
                                 </TableRow>
@@ -89,8 +91,10 @@ export default function TechnicianTable({ onEdit, onDelete, fetchData, refreshTr
                                 data.map((item) => (
                                     <TableRow key={item.id} className="hover:bg-muted">
                                         <TableCell className="px-4 py-2 font-medium">{item.id}</TableCell>
-                                        <TableCell className="px-4 py-2">{item.dni || "N/A"}</TableCell>
                                         <TableCell className="px-4 py-2">{item.name || "N/A"}</TableCell>
+                                        <TableCell className="px-4 py-2">{item.start_date || "N/A"}</TableCell>
+                                        <TableCell className="px-4 py-2">{item.end_date || "N/A"}</TableCell>
+                                        <TableCell className="px-4 py-2">{item.status || "N/A"}</TableCell>
                                         <TableCell className="px-4 py-2 flex justify-end gap-2">
                                             <ActionButtons
                                                 onEdit={() => onEdit(item)}

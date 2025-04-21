@@ -36,16 +36,32 @@ export async function GET(request: Request) {
 
     // Consulta eficiente con transaction
     const [data, total] = await prisma.$transaction([
-      prisma.preCatastrals.findMany({
+      prisma.preCatastral.findMany({
         where,
         skip,
         take: limit,
         include: {
           customer: true,
           technician: true,
+          histories: {
+            select: {
+              id: true,
+              action: true,
+              updated_at: true,
+              user: {
+                select: {
+                  names: true
+                }
+              }
+              // incluye otros campos que necesites
+            },
+            orderBy: {
+              updated_at: 'desc'
+            }
+          }
         }
       }),
-      prisma.preCatastrals.count({ where }),
+      prisma.preCatastral.count({ where }),
     ]);
 
     return NextResponse.json({ data, total });

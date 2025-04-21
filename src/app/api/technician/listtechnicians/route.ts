@@ -15,6 +15,7 @@ export async function GET(request: Request) {
       prisma.technician.findMany({
         skip,
         take: limit,
+        orderBy: { id: 'desc' }
       }),
       prisma.technician.count(),
     ]);

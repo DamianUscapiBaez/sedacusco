@@ -10,33 +10,46 @@ import CloseIcon from "@mui/icons-material/Close";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { FiX, FiSave, FiLoader } from "react-icons/fi";
 import { useEffect, useState } from "react";
 
-const TechnicianSchema = z.object({
-    dni: z.string().min(1, "Dni requerido"),
-    name: z.string().min(1, "Nombre de usuario requerido")
+const LotSchema = z.object({
+    name: z.string().min(1, "Nombre del lote es requerido"),
+    start_date: z.string(),
+    end_date: z.string(),
+    status: z.enum(["ACTIVE", "INACTIVE"])
 });
 
-type TechnicianForm = z.infer<typeof TechnicianSchema> & { id?: number };
+type LotForm = z.infer<typeof LotSchema> & { id?: number };
 
-export default function TechnicianDialog({ open, onClose, editData, onSubmit }: {
+const DEFAULT_VALUES: Partial<LotForm> = {
+    name: "",
+    start_date: new Date().toISOString().split('T')[0],
+    end_date: new Date().toISOString().split('T')[0],
+    status: "ACTIVE"
+}
+
+export default function LotDialog({ open, onClose, editData, onSubmit }: {
     open: boolean;
     onClose: () => void;
-    editData: TechnicianForm | null;
-    onSubmit: (data: TechnicianForm) => void;
+    editData: LotForm | null;
+    onSubmit: (data: LotForm) => void;
 }) {
-    const { register, handleSubmit, watch, setValue, control, reset, formState: { errors, isSubmitting } } = useForm<TechnicianForm>({
-        resolver: zodResolver(TechnicianSchema),
-        mode: "onChange"
+    const { register, handleSubmit, setValue, reset, formState: { errors, isSubmitting } } = useForm<LotForm>({
+        resolver: zodResolver(LotSchema),
+        mode: "onChange",
+        defaultValues: DEFAULT_VALUES
     });
+
     const [loading, setLoading] = useState({ save: false });
-    const fetchGetTechnician = async (id: number) => {
+
+    const fetchGetLot = async (id: number) => {
         try {
-            const response = await fetch(`/api/technician/gettechnician?id=${id}`);
+            const response = await fetch(`/api/lot/getlot?id=${id}`);
             const result = await response.json();
             reset(result.data);
         } catch (error) {
@@ -48,18 +61,15 @@ export default function TechnicianDialog({ open, onClose, editData, onSubmit }: 
         if (open) {
             if (editData) {
                 if (editData?.id) {
-                    fetchGetTechnician(editData.id);
+                    fetchGetLot(editData.id);
                 }
             } else {
-                reset({
-                    dni: "",
-                    name: ""
-                });
+                reset(DEFAULT_VALUES);
             }
         }
     }, [open, editData, reset]);
 
-    const handleFormSubmit = async (data: TechnicianForm) => {
+    const handleFormSubmit = async (data: LotForm) => {
         setLoading({ ...loading, save: true });
         try {
             await onSubmit(data);
@@ -73,7 +83,7 @@ export default function TechnicianDialog({ open, onClose, editData, onSubmit }: 
     return (
         <Dialog open={open} maxWidth="xs" fullWidth onClose={onClose}>
             <DialogTitle className="sticky top-0 z-10 bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6">
-                {editData ? "✏️ Editar Tecnico" : "➕ Nuevo Tecnico"}
+                {editData ? "✏️ Editar Lote" : "➕ Nuevo Lote"}
                 <IconButton
                     aria-label="close"
                     onClick={onClose}
@@ -91,18 +101,7 @@ export default function TechnicianDialog({ open, onClose, editData, onSubmit }: 
                 <DialogContent dividers className="bg-gray-50 dark:bg-gray-900 dark:text-white space-y-5" sx={{ maxHeight: "90vh", overflowY: "auto" }}>
                     <div className="grid grid-cols-1 gap-3">
                         <div className="space-y-1">
-                            <Label htmlFor="dni">DNI *</Label>
-                            <Input
-                                id="dni"
-                                {...register("dni")}
-                                className={`mt-2 ${errors.dni ? "border-red-500" : ""}`}
-                            />
-                            {errors.dni && (
-                                <p className="text-xs text-red-500">{errors.dni.message}</p>
-                            )}
-                        </div>
-                        <div className="space-y-1">
-                            <Label htmlFor="name">Nombre de Tecnico *</Label>
+                            <Label htmlFor="name">Nombre del lote *</Label>
                             <Input
                                 id="name"
                                 {...register("name")}
@@ -112,6 +111,51 @@ export default function TechnicianDialog({ open, onClose, editData, onSubmit }: 
                                 <p className="text-xs text-red-500">{errors.name.message}</p>
                             )}
                         </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                            <Label htmlFor="start_date">Fecha Inicial *</Label>
+                            <Input
+                                id="start_date"
+                                {...register("start_date")}
+                                type="date"
+                                className={`mt-2 ${errors.start_date ? "border-red-500" : ""}`}
+                            />
+                            {errors.start_date && (
+                                <p className="text-xs text-red-500">{errors.start_date.message}</p>
+                            )}
+                        </div>
+                        <div className="space-y-1">
+                            <Label htmlFor="end_date">Fecha Final *</Label>
+                            <Input
+                                id="end_date"
+                                {...register("end_date")}
+                                type="date"
+                                className={`mt-2 ${errors.end_date ? "border-red-500" : ""}`}
+                            />
+                            {errors.end_date && (
+                                <p className="text-xs text-red-500">{errors.end_date.message}</p>
+                            )}
+                        </div>
+                    </div>
+                    <div className="space-y-1">
+                        <Label htmlFor="status">Estado *</Label>
+                        <Select
+                            {...register("status")}
+                            defaultValue={editData?.status || "ACTIVE"}
+                            onValueChange={(value) => setValue("status", value as "ACTIVE" | "INACTIVE")}
+                        >
+                            <SelectTrigger className={`w-full mt-2 ${errors.status ? "border-red-500" : ""}`}>
+                                <SelectValue placeholder="Seleccionar estado" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="ACTIVE">Activo</SelectItem>
+                                <SelectItem value="INACTIVE">Inactivo</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        {errors.status && (
+                            <p className="text-xs text-red-500">{errors.status.message}</p>
+                        )}
                     </div>
                 </DialogContent>
                 <DialogActions className="sticky bottom-0 bg-gray-100 dark:bg-gray-800 px-6 py-4 border-t border-gray-200 dark:border-gray-700">

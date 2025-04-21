@@ -9,7 +9,7 @@ export async function PUT(request: Request) {
         // Paginación
         const id = Number(searchParams.get("id"));
         const {
-            lot,
+            lot_id,
             file_number,
             file_date,
             file_time,
@@ -67,10 +67,9 @@ export async function PUT(request: Request) {
         }
 
         // ✅ Si todo está bien, actualizamos el registro PreCatastral
-        const actualizadoPreCatastral = await prisma.act.update({
+        const actualizadoAct = await prisma.act.update({
             where: { id },
             data: {
-                lot,
                 file_number,
                 file_date: new Date(file_date), // Convertir a fecha
                 file_time: file_time ? new Date(`1970-01-01T${file_time.padEnd(8, ':00').slice(0, 8)}Z`) : null,
@@ -79,6 +78,7 @@ export async function PUT(request: Request) {
                 rotating_pointer,
                 meter_security_seal,
                 reading_impossibility_viewer,
+                lot: { connect: { id: Number(lot_id) } },
                 customer: { connect: { id: customer_id } },  // Conexión con cliente
                 technician: { connect: { id: technician_id } }, // Conexión con técnico
                 meter: { connect: { id: meterrenovation_id } }, // Conexión con medidor
@@ -94,7 +94,7 @@ export async function PUT(request: Request) {
             },
         });
 
-        return NextResponse.json(actualizadoPreCatastral, { status: 200 });
+        return NextResponse.json(actualizadoAct, { status: 200 });
     } catch (error) {
         console.error("Error en la API:", error);
         return NextResponse.json(

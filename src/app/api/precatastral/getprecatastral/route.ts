@@ -11,13 +11,14 @@ export async function GET(request: Request) {
                 { status: 400 }
             );
         }
-        const record = await prisma.preCatastrals.findUnique({
+        const record = await prisma.preCatastral.findUnique({
             where: {
                 id: Number(id),
             },
             include: {
                 customer: true,
                 technician: true,
+                lot: true
             },
         });
         if (!record) {

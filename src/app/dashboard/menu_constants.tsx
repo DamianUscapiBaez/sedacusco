@@ -1,8 +1,12 @@
 // menu_constants.ts
 import { SideNavItemGroup } from "@/types/types";
 import { BsHouseDoor } from "react-icons/bs";
-import { FaFileSignature, FaUserCog, FaUserFriends } from "react-icons/fa";
-import { MdEngineering } from "react-icons/md";
+import { TbReportAnalytics } from "react-icons/tb";
+import { LuUserRoundCog, LuWarehouse } from "react-icons/lu";
+import { PiUsersThree } from "react-icons/pi";
+import { CiBoxes } from "react-icons/ci";
+import { MdOutlineEngineering } from "react-icons/md";
+import { HiOutlineClipboardDocumentList } from "react-icons/hi2";
 
 export const FULL_MENU: SideNavItemGroup[] = [
     {
@@ -13,43 +17,72 @@ export const FULL_MENU: SideNavItemGroup[] = [
             icon: <BsHouseDoor size={20} />,
             permission: null // No requiere permiso
         }]
-    }, {
-        title: "Gestionar",
+    },
+    {
+        title: "Gestionar Usuarios",
         menuList: [
             {
                 title: 'Roles',
                 path: '/dashboard/role',
-                icon: <FaUserCog size={20} />,
+                icon: <LuUserRoundCog size={20} />,
                 permission: 'roles.manage' // Permiso requerido
             },
             {
                 title: 'Usuarios',
                 path: '/dashboard/user',
-                icon: <FaUserFriends size={20} />,
+                icon: <PiUsersThree size={20} />,
                 permission: 'users.manage' // Permiso requerido
-            },
-            {
-                title: 'Tecnicos',
-                path: '/dashboard/technician',
-                icon: <MdEngineering size={20} />,
-                permission: 'technician.manage' // Permiso requerido
             }
         ]
     },
     {
-        title: "Documentos",
+        title: "Gestionar Almacen",
         menuList: [
+            {
+                title: 'Lotes',
+                path: '/dashboard/lot',
+                icon: <CiBoxes size={20} />,
+                permission: 'lots.manage' // Permiso requerido
+            },
+            {
+                title: 'Rotulado',
+                path: '/dashboard/labeled',
+                icon: <LuWarehouse size={20} />,
+                permission: 'labeled.manage' // Permiso requerido
+            }
+        ]
+    },
+    {
+        title: "Gestionar Documentos",
+        menuList: [
+            {
+                title: 'Tecnicos',
+                path: '/dashboard/technician',
+                icon: <MdOutlineEngineering size={20} />,
+                permission: 'technician.manage' // Permiso requerido
+            },
             {
                 title: 'Pre Catastros',
                 path: '/dashboard/precatastral',
-                icon: <FaFileSignature size={20} />,
+                icon: <HiOutlineClipboardDocumentList size={20} />,
                 permission: 'precatastral.manage' // Permiso requerido
             },
             {
                 title: 'Actas',
                 path: '/dashboard/act',
-                icon: <FaFileSignature size={20} />,
+                icon: <HiOutlineClipboardDocumentList size={20} />,
                 permission: 'acts.manage' // Permiso requerido
+            }
+        ]
+    },
+    {
+        title: "Reportes",
+        menuList: [
+            {
+                title: 'Reporte',
+                path: '/dashboard/precatastral',
+                icon: <TbReportAnalytics size={20} />,
+                permission: 'reports.generate' // Permiso requerido
             }
         ]
     }

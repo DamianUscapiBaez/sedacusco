@@ -13,10 +13,18 @@ export type SideNavItemGroup = {
   title: string;
   menuList: SideNavItem[]
 }
+
 export interface RoleData {
   id: number;
   name: string;
   description?: string;
+}
+export interface LotData {
+  id: number;
+  name: string;
+  start_date: string;
+  end_date: string;
+  status: string;
 }
 export interface UserData {
   id: number;
@@ -87,28 +95,29 @@ export interface PreCatastralData {
   customer_id: number;
   technician_id: number;
   created_at?: string | Date;
-
   // Relaciones
-  customer?: {
-    id: number;
-    customer_name: string;
-    address: string;
+  customer: {
     inscription: string;
+    customer_name: string;
+    old_meter: string;
+    address: string;
   };
-
-  technician?: {
-    id: number;
-    name: string;
+  technician: {
     dni: string;
+    name: string;
   };
+  histories: PrecatastralHistory[];
+}
 
-  histories?: Array<{
+export interface PrecatastralHistory {
+  id: number;
+  action: 'CREATE' | 'UPDATE' | 'DELETE';
+  updated_at: string; // Nota: corrected from 'update_at' to match Prisma model
+  details?: string;
+  user: {
     id: number;
-    action: string;
-    details: string;
-    created_at: string | Date;
-    updated_by: number;
-  }>;
+    names: string;
+  };
 }
 
 export interface FetchParams {

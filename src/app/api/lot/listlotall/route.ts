@@ -12,15 +12,27 @@ export async function GET(request: Request) {
 
         // Consulta eficiente con transaction
         const [data, total] = await prisma.$transaction([
-            prisma.role.findMany({
+            prisma.lot.findMany({
                 skip,
                 take: limit,
                 orderBy: { id: 'desc' }
             }),
-            prisma.role.count(),
+            prisma.lot.count(),
         ]);
 
-        return NextResponse.json({ data, total });
+        // Función para formatear fechas
+        const formatDate = (date: Date | null) => {
+            return date ? new Date(date).toISOString().split('T')[0] : null;
+        };
+
+        // Formatear todas las fechas
+        const formattedData = data.map((record) => ({
+            ...record,
+            start_date: formatDate(record.start_date),
+            end_date: formatDate(record.end_date)
+        }));
+
+        return NextResponse.json({ data: formattedData, total });
     } catch (error) {
         console.error("Error in API:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

@@ -133,19 +133,19 @@ export default function RolePage() {
             <Card className="w-full max-w-[100vw] mx-auto overflow-visible">
                 <CardHeader>
                     <CardTitle className="text-2xl font-bold">Roles</CardTitle>
-                    <CardDescription className="text-justify">
-                        Gestiona los roles y permisos de la aplicación.
+                    <CardDescription className="grid grid-cols-1 md:grid-cols-2 items-center">
+                        <p>Gestiona los roles y permisos de la aplicación.</p>
+                        <PermissionWrapper permission="roles.create">
+                            <div className="flex flex-row items-center justify-center md:justify-end gap-2 w-full mt-4">
+                                <Button
+                                    className="bg-emerald-500 hover:bg-emerald-600 text-white w-full md:w-auto"
+                                    onClick={() => handleOpenEdit(null)}
+                                >
+                                    <HiUserAdd className="mr-2 h-4 w-4" /> Nuevo rol
+                                </Button>
+                            </div>
+                        </PermissionWrapper>
                     </CardDescription>
-                    <PermissionWrapper permission="roles.create">
-                        <div className="flex flex-row items-center justify-center md:justify-end gap-2 w-full mt-4">
-                            <Button
-                                className="bg-emerald-500 hover:bg-emerald-600 text-white w-full md:w-auto"
-                                onClick={() => handleOpenEdit(null)}
-                            >
-                                <HiUserAdd className="mr-2 h-4 w-4" /> Nuevo rol
-                            </Button>
-                        </div>
-                    </PermissionWrapper>
                 </CardHeader>
                 <CardContent className="w-full overflow-visible">
                     <RoleTable

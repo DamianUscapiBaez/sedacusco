@@ -6,9 +6,14 @@ const prisma = new PrismaClient();
 
 async function main() {
   // 1. Crear permisos básicos
-  const permissions = await prisma.permission.createMany({
+  await prisma.permission.createMany({
     data: [
-      // Módulo de Usuarios
+      // Modulo de Lotes
+      { key: 'lots.manage', name: 'Gestión de Lotes', description: 'Administrar lotes del sistema' },
+      { key: 'lots.create', name: 'Crear Lotes', description: 'Crear nuevas lotes' },
+      { key: 'lots.update', name: 'Editar Lotes', description: 'Modificar lotes existentes' },
+      { key: 'lots.delete', name: 'Eliminar Lotes', description: 'Eliminar lotes del sistema' },
+      // Módulo de Roles
       { key: 'roles.manage', name: 'Gestión de Usuarios', description: 'Administrar roles del sistema' },
       { key: 'roles.create', name: 'Crear Usuarios', description: 'Crear nuevos roles' },
       { key: 'roles.update', name: 'Editar Usuarios', description: 'Modificar roles existentes' },
@@ -18,47 +23,75 @@ async function main() {
       { key: 'users.create', name: 'Crear Usuarios', description: 'Crear nuevos usuarios' },
       { key: 'users.update', name: 'Editar Usuarios', description: 'Modificar usuarios existentes' },
       { key: 'users.delete', name: 'Eliminar Usuarios', description: 'Eliminar usuarios del sistema' },
-
-      // Módulo de Precatastrales
+      // Módulo de Rotulado
+      { key: 'labeled.manage', name: 'Gestión Rotulado', description: 'Administrar rotulado' },
+      { key: 'labeled.create', name: 'Crear Rotulado', description: 'Crear nuevos rotulado' },
+      { key: 'labeled.update', name: 'Editar Rotulado', description: 'Modificar rotulado' },
+      { key: 'labeled.delete', name: 'Eliminar Rotulado', description: 'Eliminar rotulado' },
+      // Módulo de Tecnicos
       { key: 'technician.manage', name: 'Gestión Tecnico', description: 'Administrar tecnicos' },
       { key: 'technician.create', name: 'Crear Tecnicos', description: 'Crear nuevos tecnicos' },
       { key: 'technician.update', name: 'Editar Tecnicos', description: 'Modificar tecnicos' },
       { key: 'technician.delete', name: 'Eliminar Tecnicos', description: 'Eliminar tecnicos' },
-
       // Módulo de Actas
       { key: 'acts.manage', name: 'Gestión de Actas', description: 'Administrar actas del sistema' },
       { key: 'acts.create', name: 'Crear Actas', description: 'Crear nuevas actas' },
       { key: 'acts.update', name: 'Editar Actas', description: 'Modificar actas existentes' },
       { key: 'acts.delete', name: 'Eliminar Actas', description: 'Eliminar actas del sistema' },
-
       // Módulo de Precatastrales
       { key: 'precatastral.manage', name: 'Gestión Precatastral', description: 'Administrar precatastrales' },
       { key: 'precatastral.create', name: 'Crear Precatastrales', description: 'Crear nuevos precatastrales' },
       { key: 'precatastral.update', name: 'Editar Precatastrales', description: 'Modificar precatastrales' },
       { key: 'precatastral.delete', name: 'Eliminar Precatastrales', description: 'Eliminar precatastrales' },
-
       // Módulo de Reportes
-      // { key: 'reports.generate', name: 'Generar Reportes', description: 'Generar reportes del sistema' },
+      { key: 'reports.generate', name: 'Generar Reportes', description: 'Generar reportes del sistema' },
     ],
     skipDuplicates: true,
+  });
+
+  // 2. Crear roles básicos
+  await prisma.lot.create({
+    data: {
+      name: 'Lote 1',
+      start_date: new Date('2024-02-24'),
+      end_date: new Date('2024-03-24'),
+      status: 'INACTIVE'
+    }
+  });
+
+  await prisma.lot.create({
+    data: {
+      name: 'Lote 2',
+      start_date: new Date('2024-03-24'),
+      end_date: new Date('2024-04-24'),
+      status: 'ACTIVE'
+    }
   });
 
   // 2. Crear roles básicos
   const adminRole = await prisma.role.create({
     data: {
       name: 'Administrador',
-      description: 'Acceso completo al sistema',
+      description: 'Acceso completo al sistema.',
     }
   });
-
 
   // También actualiza el nombre y descripción del rol para que sea más claro
-  const consultantRole = await prisma.role.create({
+  const digitadorRole = await prisma.role.create({
     data: {
       name: 'Digitador',
-      description: 'Puede crear y ver actas y precatastrales',
+      description: 'Puede crear y ver actas y precatastrales.',
     }
   });
+
+  // También actualiza el nombre y descripción del rol para que sea más claro
+  const almaceneroRole = await prisma.role.create({
+    data: {
+      name: 'Almacenero',
+      description: 'Puede administrar solo labeled.',
+    }
+  });
+
 
   // 3. Asignar permisos a roles
   // Administrador - todos los permisos
@@ -83,17 +116,36 @@ async function main() {
       ]
     }
   });
+
   await prisma.rolePermission.createMany({
     data: digitadorPermissions.map(p => ({
-      roleId: consultantRole.id,
+      roleId: digitadorRole.id,
+      permissionId: p.id,
+    }))
+  });
+
+  const almaceneroPermission = await prisma.permission.findMany({
+    where: {
+      OR: [
+        // Permisos para Actas
+        { key: { in: ['labeled.read', 'labeled.create', 'labeled.update'] } },
+        // Permiso básico para el dashboard
+        { key: 'dashboard.access' }
+      ]
+    }
+  });
+
+  await prisma.rolePermission.createMany({
+    data: almaceneroPermission.map(p => ({
+      roleId: almaceneroRole.id,
       permissionId: p.id,
     }))
   });
 
 
   // 4. Crear usuario administrador
-  const adminPassword = await hash('admin123', 10);
-  const adminUser = await prisma.user.create({
+  const adminPassword = await hash('Poppies090301', 10);
+  await prisma.user.create({
     data: {
       names: "Damian Uscapi",
       username: 'admin',
@@ -122,7 +174,7 @@ async function main() {
   //   }
   // });
 
-  // // 6. Crear clientes de ejemplo
+  // 6. Crear clientes de ejemplo
   // const customer1 = await prisma.customer.create({
   //   data: {
   //     inscription: '012345678',
@@ -162,7 +214,7 @@ async function main() {
   //   }
   // });
 
-  // // 7. Crear medidores de ejemplo
+  // 7. Crear medidores de ejemplo
   // const meter1 = await prisma.meterRenovation.create({
   //   data: {
   //     meter_number: 'DA24000001',
@@ -188,7 +240,7 @@ async function main() {
   //     verification_code: 'VC004'
   //   }
   // });
-  // // 8. Crear actas de ejemplo
+  // 8. Crear actas de ejemplo
   // const act1 = await prisma.act.create({
   //   data: {
   //     lot: '1',
@@ -305,11 +357,11 @@ async function main() {
   console.log('----------------------------------------');
   console.log('👤 Usuario administrador:');
   console.log(`   Username: admin`);
-  console.log(`   Password: Admin1234`);
+  console.log(`   Password: Poppies090301`);
   console.log('----------------------------------------');
   console.log('📊 Datos creados:');
   console.log(`   - ${allPermissions.length} permisos`);
-  console.log(`   - 3 roles (Administrador, Técnico, Consultor)`);
+  console.log(`   - 3 roles (Administrador, Técnico, Almacenero)`);
 }
 
 main()

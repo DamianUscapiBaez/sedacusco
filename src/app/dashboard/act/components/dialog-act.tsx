@@ -12,9 +12,10 @@ import Swal from "sweetalert2";
 import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
+import { LotData } from "@/types/types";
 
 const baseActSchema = z.object({
-    lot: z.enum(["1", "2"]),
+    lot_id: z.string().min(1, "Lote es requerido"),
     file_number: z.string().min(1, "Número de ficha requerido").regex(/^\d+$/, "Solo se permiten números"),
     inscription_number: z.string().min(1, "Número de inscripción requerido").regex(/^\d+$/, "Solo se permiten números"),
     file_date: z.string(),
@@ -44,6 +45,30 @@ const baseActSchema = z.object({
     meter_security_seal: z.enum(["SI", "NO"]).optional(),
     reading_impossibility_viewer: z.enum(["SI", "NO"]).optional()
 });
+
+const DEFAULT_VALUES: Partial<ActForm> = {
+    file_date: new Date().toISOString().split('T')[0],
+    file_time: "",
+    file_number: "",
+    inscription_number: "",
+    technician_id: 0,
+    technician_name: "",
+    technician_dni: "",
+    lot_id: "2",
+    rotating_pointer: "SI",
+    meter_security_seal: "NO",
+    reading_impossibility_viewer: "NO",
+    observations: "SIN_OBSERVACIONES",
+    customer_id: 0,
+    customer_name: "",
+    customer_address: "",
+    old_meter: "",
+    reading: "",
+    meterrenovation_id: 0,
+    meter_number: "",
+    verification_code: "",
+};
+
 
 const actSchema = baseActSchema.superRefine((data, ctx) => {
     // Validación condicional cuando no hay observaciones
@@ -75,16 +100,24 @@ const actSchema = baseActSchema.superRefine((data, ctx) => {
 type ActForm = z.infer<typeof actSchema> & { id?: number };
 
 export default function ActDialog({ open, onClose, editData, refreshTable }: { open: boolean; onClose: () => void; editData: ActForm | null; refreshTable: () => void; }) {
-    const { register, handleSubmit: formHandleSubmit, watch, setValue, control, reset, formState: { errors, isSubmitting } } = useForm<ActForm>({
+    const {
+        register,
+        handleSubmit: formHandleSubmit,
+        watch,
+        setValue,
+        control,
+        reset,
+        clearErrors,
+        formState: { errors, isSubmitting }
+    } = useForm<ActForm>({
         resolver: zodResolver(actSchema),
         mode: "onChange",
-        defaultValues: {
-            file_date: new Date().toISOString().split('T')[0],
-            lot: "2"
-        }
+        defaultValues: DEFAULT_VALUES
     });
 
+    const [lots, setLots] = useState<LotData[]>([]);
     const [loading, setLoading] = useState({ inscription: false, technician: false, save: false, meterrenovation: false });
+    const [disabled, setDisabled] = useState({ meter: false, reading: false })
 
     const showAlert = (title: string, text: string, icon: 'success' | 'error' | 'warning' | 'info') => {
         Swal.fire({
@@ -99,6 +132,18 @@ export default function ActDialog({ open, onClose, editData, refreshTable }: { o
             },
         });
     };
+
+    const fetchLots = async () => {
+        try {
+            const response = await fetch("/api/lot/listlots");
+            if (!response.ok) throw new Error(`Error: ${response.status}`);
+            const data = await response.json();
+            setLots(data.data);
+        } catch (error) {
+            console.error("Error fetching roles:", error);
+        }
+    };
+
     const handleSearch = async (type: 'inscription' | 'technician' | 'meterrenovation') => {
         const fieldMap = {
             inscription: 'inscription_number',
@@ -171,56 +216,80 @@ export default function ActDialog({ open, onClose, editData, refreshTable }: { o
         }
     };
 
-    const handleSave = async (data: { [key: string]: any }) => {
-        setLoading((prev) => ({ ...prev, save: true })); // Activar loading
+    const handleSave = async (data: ActForm) => {
+        setLoading((prev) => ({ ...prev, save: true }));
+
         try {
+            // 1. Verificar sesión de usuario
             const sessionResponse = await fetch("/api/auth/session");
-            if (!sessionResponse.ok) throw new Error("Error al obtener la sesión del usuario");
+            if (!sessionResponse.ok) {
+                throw new Error("Error al obtener la sesión del usuario");
+            }
 
             const session = await sessionResponse.json();
             const userId = Number(session.user?.id);
 
             if (!userId) {
-                showAlert("Error de autenticación", "No se pudo identificar al usuario. Por favor, inicia sesión nuevamente.", "error");
+                showAlert(
+                    "Error de autenticación",
+                    "No se pudo identificar al usuario. Por favor, inicia sesión nuevamente.",
+                    "error"
+                );
                 return;
             }
 
+            // 2. Preparar payload
             const payload = {
                 ...data,
                 [editData?.id ? "updated_by" : "created_by"]: userId,
             };
 
+            // 3. Determinar endpoint y método
             const apiEndpoint = editData
-                ? `/api/act/updateact?id=${editData?.id}`
+                ? `/api/act/updateact?id=${editData.id}`
                 : "/api/act/newact";
+            const method = editData ? "PUT" : "POST";
 
+            // 4. Enviar solicitud
             const response = await fetch(apiEndpoint, {
-                method: editData ? "PUT" : "POST",
-                headers: { "Content-Type": "application/json" },
+                method,
+                headers: {
+                    "Content-Type": "application/json",
+                },
                 body: JSON.stringify(payload),
             });
 
             const result = await response.json();
-            if (!response.ok) {
+
+            if (result?.error) {
                 showAlert("Error", result.error || "Algo salió mal al guardar.", "error");
                 return;
+            } else {
+                showAlert("¡Guardado exitosamente!", editData?.id
+                    ? "El registro fue actualizado correctamente."
+                    : "El registro fue creado correctamente.",
+                    "success"
+                );
+
+                refreshTable();
+                if (!editData?.id) {
+                    clearFields(); // Solo limpiar si es creación nueva
+                } else {
+                    onClose(); // Cerrar diálogo si es edición
+                }
             }
-
+        } catch (error: any) {
+            console.error("Error al guardar:", error);
             showAlert(
-                "¡Guardado exitosamente!",
-                editData?.id ? "El registro fue actualizado correctamente." : "El registro fue creado correctamente.",
-                "success"
+                "Error",
+                error.message || "Ocurrió un error inesperado. Intenta nuevamente.",
+                "error"
             );
-
-            if (typeof refreshTable === "function") refreshTable();
-            if (editData?.id) onClose(); // Cierra el diálogo solo si está editando
-        } catch (error) {
-            console.error("❌ Error al guardar:", error);
-            showAlert("Error del servidor", "Ocurrió un error inesperado. Intenta nuevamente.", "error");
         } finally {
-            setLoading((prev) => ({ ...prev, save: false })); // Desactivar loading
+            setLoading((prev) => ({ ...prev, save: false }));
         }
     };
+
     const handleEdit = async (id: number) => {
         try {
             const response = await fetch(`/api/act/getact?id=${id}`);
@@ -232,7 +301,11 @@ export default function ActDialog({ open, onClose, editData, refreshTable }: { o
             }
 
             const { customer, technician, meter, ...rest } = result.data;
-            reset(rest);
+            reset({
+                ...DEFAULT_VALUES,
+                ...rest,
+                lot_id: result.data.lot_id?.toString() || "2"
+            });
 
             if (customer) {
                 setValue('customer_id', customer.id || 0);
@@ -260,30 +333,9 @@ export default function ActDialog({ open, onClose, editData, refreshTable }: { o
     };
 
     const clearFields = () => {
-        const defaultValues: Partial<ActForm> = {
-            file_time: "",
-            file_number: "",
-            inscription_number: "",
-            technician_id: 0,
-            technician_name: "",
-            technician_dni: "",
-            lot: "2",
-            rotating_pointer: "SI",
-            meter_security_seal: "NO",
-            reading_impossibility_viewer: "NO",
-            observations: "SIN_OBSERVACIONES",
-            customer_id: 0,
-            customer_name: "",
-            customer_address: "",
-            old_meter: "",
-            reading: "",
-            meterrenovation_id: 0,
-            meter_number: "",
-            verification_code: "",
-        };
-
-        Object.entries(defaultValues).forEach(([key, value]) => setValue(key as keyof ActForm, value as any));
+        reset(DEFAULT_VALUES);
     };
+
     // const onError = (errors: any) => {
     //     console.error("❌ Errores de validación:", errors);
     //     Object.entries(errors).forEach(([key, value]) => {
@@ -297,7 +349,8 @@ export default function ActDialog({ open, onClose, editData, refreshTable }: { o
             } else {
                 clearFields();
             }
-            reset({}, { keepErrors: false }); 
+            reset({}, { keepErrors: false });
+            fetchLots();
         }
     }, [open, editData]);
 
@@ -397,26 +450,34 @@ export default function ActDialog({ open, onClose, editData, refreshTable }: { o
                                         )}
                                     </div>
                                     <div className="space-y-1">
-                                        <Label htmlFor="lot">Lote</Label>
+                                        <Label htmlFor="lot_id">Lote</Label>
                                         <Controller
-                                            name="lot"
+                                            name="lot_id"
                                             control={control}
                                             render={({ field }) => (
                                                 <Select
-                                                    disabled
-                                                    value={field.value}
-                                                    onValueChange={(value) => field.onChange(value)}
+                                                    value={field.value} // Set default value to "2" if field.value is undefined
+                                                    onValueChange={(value) => {
+                                                        field.onChange(value);
+                                                        setValue("lot_id", value);
+                                                    }}
                                                 >
-                                                    <SelectTrigger className={`w-full mt-2 ${errors.observations ? "border-red-500" : ""}`}>
+                                                    <SelectTrigger className={`w-full mt-2 ${errors.lot_id ? "border-red-500" : ""}`}>
                                                         <SelectValue placeholder="Seleccione" />
                                                     </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="1">Lote 1</SelectItem>
-                                                        <SelectItem value="2">Lote 2</SelectItem>
+                                                    <SelectContent className="max-h-60 overflow-auto">
+                                                        {lots.map((item) => (
+                                                            <SelectItem key={item.id} value={item.id.toString()} className="capitalize">
+                                                                {item.name}
+                                                            </SelectItem>
+                                                        ))}
                                                     </SelectContent>
                                                 </Select>
                                             )}
                                         />
+                                        {errors.lot_id && (
+                                            <p className="text-xs text-red-500 mt-1">{errors.lot_id.message}</p>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -453,7 +514,6 @@ export default function ActDialog({ open, onClose, editData, refreshTable }: { o
                                 <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                                     🛠️ Datos de Reinstalación
                                 </h3>
-
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <input type="hidden" {...register('meterrenovation_id')} />
                                     <div className="space-y-1">
@@ -470,7 +530,8 @@ export default function ActDialog({ open, onClose, editData, refreshTable }: { o
                                                             pattern: {
                                                                 value: /^DA24\d{6}$/,
                                                                 message: "Formato: DA24 + 6 dígitos (ej: DA24000000)"
-                                                            }
+                                                            },
+                                                            validate: (value) => (value?.length === 10) || "Debe tener exactamente 10 caracteres"
                                                         })}
                                                         className={`mt-2 ${errors.meter_number ? "border-red-500" : ""}`}
                                                         onFocus={(e) => {
@@ -487,6 +548,7 @@ export default function ActDialog({ open, onClose, editData, refreshTable }: { o
                                                             }
                                                             register("meter_number").onChange(e);
                                                         }}
+                                                        disabled={disabled.meter}
                                                     />
                                                     <Button
                                                         type="button"
@@ -499,9 +561,14 @@ export default function ActDialog({ open, onClose, editData, refreshTable }: { o
                                                         {loading.meterrenovation ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiSearch className="h-4 w-4" />}
                                                     </Button>
                                                 </div>
-                                                <p className="text-xs mt-2 text-red-500">
-                                                    {errors.meter_number?.message}
-                                                </p>
+                                                {
+                                                    errors.meter_number && (
+                                                        <p className="text-xs mt-2 text-red-500">
+                                                            {errors.meter_number?.message}
+                                                        </p>
+                                                    )
+                                                }
+
                                                 <p className="text-xs mt-2 text-gray-500" hidden={!!errors.meter_number}>
                                                     Formato: DA24 + 6 dígitos (ej: DA24000000)
                                                 </p>
@@ -551,6 +618,7 @@ export default function ActDialog({ open, onClose, editData, refreshTable }: { o
                                             id="reading"
                                             {...register("reading")}
                                             className={`mt-2 bg-gray-100 dark:bg-gray-700 ${errors.reading ? "border-red-500" : ""}`}
+                                            disabled={disabled.reading}
                                         />
                                         {errors.reading && (
                                             <p className="text-xs text-red-500">{errors.reading.message}</p>
@@ -563,14 +631,25 @@ export default function ActDialog({ open, onClose, editData, refreshTable }: { o
                                             control={control}
                                             render={({ field }) => (
                                                 <Select
-                                                    value={field.value}
+                                                    value={field.value || "SIN_OBSERVACIONES"} // Set default value to "SIN_OBSERVACIONES" if field.value is undefined
                                                     onValueChange={(value) => {
                                                         field.onChange(value);
                                                         if (value !== "SIN_OBSERVACIONES") {
                                                             setValue("reading", "");
+                                                            setDisabled({
+                                                                meter: true,
+                                                                reading: true
+                                                            })
+                                                            clearErrors("meter_number");
+                                                            clearErrors("reading");
+                                                            clearErrors("verification_code");
                                                             setValue("verification_code", "");
                                                             setValue("meter_number", "");
-                                                            reset({}, { keepErrors: false }); // Resetea los errores al abrir el diálogo
+                                                        } else {
+                                                            setDisabled({
+                                                                meter: false,
+                                                                reading: false
+                                                            })
                                                         }
                                                     }}
                                                 >
@@ -590,72 +669,72 @@ export default function ActDialog({ open, onClose, editData, refreshTable }: { o
                                                 </Select>
                                             )} />
                                     </div>
-                                    <h4 className="mt-2 font-medium text-lg">📋 Reporte Visual</h4>
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-2">
-                                        <div className="space-y-1">
-                                            <p className="mb-2 text-sm">Punt. Med. Girando</p>
-                                            <div className="flex">
-                                                <Button
-                                                    type="button"
-                                                    variant={watch("rotating_pointer") === "SI" ? "default" : "outline"}
-                                                    onClick={() => setValue("rotating_pointer", "SI")}
-                                                    className="rounded-r-none w-1/2"
-                                                >
-                                                    Sí
-                                                </Button>
-                                                <Button
-                                                    type="button"
-                                                    variant={watch("rotating_pointer") === "NO" ? "default" : "outline"}
-                                                    onClick={() => setValue("rotating_pointer", "NO")}
-                                                    className="rounded-l-none w-1/2"
-                                                >
-                                                    No
-                                                </Button>
-                                            </div>
-                                        </div>
 
-                                        <div className="space-y-1">
-                                            <p className="mb-2 text-sm">Med. c/ Precinto</p>
-                                            <div className="flex">
-                                                <Button
-                                                    type="button"
-                                                    variant={watch("meter_security_seal") === "SI" ? "default" : "outline"}
-                                                    onClick={() => setValue("meter_security_seal", "SI")}
-                                                    className="rounded-r-none w-1/2"
-                                                >
-                                                    Sí
-                                                </Button>
-                                                <Button
-                                                    type="button"
-                                                    variant={watch("meter_security_seal") === "NO" ? "default" : "outline"}
-                                                    onClick={() => setValue("meter_security_seal", "NO")}
-                                                    className="rounded-l-none w-1/2"
-                                                >
-                                                    No
-                                                </Button>
-                                            </div>
+                                </div>
+                                <h4 className="mt-2 font-medium text-lg">📋 Reporte Visual</h4>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-2">
+                                    <div className="space-y-1">
+                                        <p className="mb-2 text-sm">Punt. Med. Girando</p>
+                                        <div className="flex">
+                                            <Button
+                                                type="button"
+                                                variant={watch("rotating_pointer") === "SI" ? "default" : "outline"}
+                                                onClick={() => setValue("rotating_pointer", "SI")}
+                                                className="rounded-r-none w-1/2"
+                                            >
+                                                Sí
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant={watch("rotating_pointer") === "NO" ? "default" : "outline"}
+                                                onClick={() => setValue("rotating_pointer", "NO")}
+                                                className="rounded-l-none w-1/2"
+                                            >
+                                                No
+                                            </Button>
                                         </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="mb-2 text-sm">Med. c/ Precinto</p>
+                                        <div className="flex">
+                                            <Button
+                                                type="button"
+                                                variant={watch("meter_security_seal") === "SI" ? "default" : "outline"}
+                                                onClick={() => setValue("meter_security_seal", "SI")}
+                                                className="rounded-r-none w-1/2"
+                                            >
+                                                Sí
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant={watch("meter_security_seal") === "NO" ? "default" : "outline"}
+                                                onClick={() => setValue("meter_security_seal", "NO")}
+                                                className="rounded-l-none w-1/2"
+                                            >
+                                                No
+                                            </Button>
+                                        </div>
+                                    </div>
 
-                                        <div className="space-y-1">
-                                            <p className="mb-2 text-sm">Visor c/ Impos. Lect.</p>
-                                            <div className="flex">
-                                                <Button
-                                                    type="button"
-                                                    variant={watch("reading_impossibility_viewer") === "SI" ? "default" : "outline"}
-                                                    onClick={() => setValue("reading_impossibility_viewer", "SI")}
-                                                    className="rounded-r-none w-1/2"
-                                                >
-                                                    Sí
-                                                </Button>
-                                                <Button
-                                                    type="button"
-                                                    variant={watch("reading_impossibility_viewer") === "NO" ? "default" : "outline"}
-                                                    onClick={() => setValue("reading_impossibility_viewer", "NO")}
-                                                    className="rounded-l-none w-1/2"
-                                                >
-                                                    No
-                                                </Button>
-                                            </div>
+                                    <div className="space-y-1">
+                                        <p className="mb-2 text-sm">Visor c/ Impos. Lect.</p>
+                                        <div className="flex">
+                                            <Button
+                                                type="button"
+                                                variant={watch("reading_impossibility_viewer") === "SI" ? "default" : "outline"}
+                                                onClick={() => setValue("reading_impossibility_viewer", "SI")}
+                                                className="rounded-r-none w-1/2"
+                                            >
+                                                Sí
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant={watch("reading_impossibility_viewer") === "NO" ? "default" : "outline"}
+                                                onClick={() => setValue("reading_impossibility_viewer", "NO")}
+                                                className="rounded-l-none w-1/2"
+                                            >
+                                                No
+                                            </Button>
                                         </div>
                                     </div>
                                 </div>

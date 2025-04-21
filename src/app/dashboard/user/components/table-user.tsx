@@ -2,11 +2,12 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FiEdit2, FiTrash2, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import React, { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UserData } from "@/types/types";
 import { ActionButtons } from "@/components/custom/ActionButtons";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ApiResponse {
   data: UserData[];
@@ -56,54 +57,56 @@ export default function UserTable({ onEdit, onDelete, fetchData, refreshTrigger 
 
   return (
     <div className="space-y-4">
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Nombres</TableHead>
-              <TableHead>Nombre de Usuario</TableHead>
-              <TableHead>Rol</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              Array.from({ length: 5 }).map((_, index) => (
-                <TableRow key={`skeleton-${index}`}>
-                  {Array.from({ length: 5 }).map((_, cellIdx) => (
-                    <TableCell key={`skeleton-cell-${index}-${cellIdx}`}>
-                      <Skeleton className="h-4 w-full" />
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : data.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center py-8">
-                  No hay datos disponibles
-                </TableCell>
+      <div className="rounded-md border relative">
+        <ScrollArea className="h-[calc(100vh-320px)] w-full overflow-auto rounded-md border">
+          <Table className="table-auto w-full">
+            <TableHeader className="sticky top-0 bg-background z-10 shadow-md">
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="px-4 py-2">#</TableHead>
+                <TableHead className="px-4 py-2">Nombres</TableHead>
+                <TableHead className="px-4 py-2">Nombre de Usuario</TableHead>
+                <TableHead className="px-4 py-2">Rol</TableHead>
+                <TableHead className="px-4 py-2 text-right">Acciones</TableHead>
               </TableRow>
-            ) : (
-              data.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.id}</TableCell>
-                  <TableCell>{item.names || "N/A"}</TableCell>
-                  <TableCell>{item.username || "N/A"}</TableCell>
-                  <TableCell>{item.role?.name || "N/A"}</TableCell>
-                  <TableCell className="flex justify-end gap-2">
-                    <ActionButtons
-                      onEdit={() => onEdit(item)}
-                      onDelete={item.id ? () => onDelete(item.id) : undefined}
-                      editPermission="users.update"
-                      deletePermission="users.delete"
-                    />
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                Array.from({ length: 5 }).map((_, index) => (
+                  <TableRow key={`skeleton-${index}`}>
+                    {Array.from({ length: 5 }).map((_, cellIdx) => (
+                      <TableCell key={`skeleton-cell-${index}-${cellIdx}`}>
+                        <Skeleton className="h-4 w-full" />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : data.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8">
+                    No hay datos disponibles
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ) : (
+                data.map((item) => (
+                  <TableRow key={item.id} className="hover:bg-muted">
+                    <TableCell className="px-4 py-2 font-medium">{item.id}</TableCell>
+                    <TableCell className="px-4 py-2">{item.names || "N/A"}</TableCell>
+                    <TableCell className="px-4 py-2">{item.username || "N/A"}</TableCell>
+                    <TableCell className="px-4 py-2">{item.role?.name || "N/A"}</TableCell>
+                    <TableCell className="px-4 py-2 flex justify-end gap-2">
+                      <ActionButtons
+                        onEdit={() => onEdit(item)}
+                        onDelete={item.id ? () => onDelete(item.id) : undefined}
+                        editPermission="users.update"
+                        deletePermission="users.delete"
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </ScrollArea>
       </div>
 
       {/* Paginación */}

@@ -4,11 +4,14 @@ import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
 const routePermissions: Record<string, string[]> = {
-  '/dashboard/user': ['users.manage'],
+  '/dashboard/lots': ['lots.manage'],
   '/dashboard/role': ['roles.manage'],
-  '/dashboard/precatastral': ['precatastral.manage'],
-  '/dashboard/acts': ['acts.manage'],
+  '/dashboard/user': ['users.manage'],
+  '/dashboard/labeled': ['labeled.manage'],
   '/dashboard/technician': ['technician.manage'],
+  '/dashboard/acts': ['acts.manage'],
+  '/dashboard/precatastral': ['precatastral.manage'],
+  '/dashboard/reports': ['reports.generate']
 
 };
 
