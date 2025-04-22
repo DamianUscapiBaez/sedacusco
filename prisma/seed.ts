@@ -108,9 +108,9 @@ async function main() {
     where: {
       OR: [
         // Permisos para Actas
-        { key: { in: ['acts.read', 'acts.create'] } },
+        { key: { in: ['acts.magane', 'acts.read', 'acts.create'] } },
         // Permisos para Precatastrales
-        { key: { in: ['precatastral.read', 'precatastral.create'] } },
+        { key: { in: ['precatastral.manage', 'precatastral.read', 'precatastral.create'] } },
         // Permiso básico para el dashboard
         { key: 'dashboard.access' }
       ]
@@ -128,7 +128,7 @@ async function main() {
     where: {
       OR: [
         // Permisos para Actas
-        { key: { in: ['labeled.read', 'labeled.create', 'labeled.update'] } },
+        { key: { in: ['labeled.manage', 'labeled.read', 'labeled.create', 'labeled.update'] } },
         // Permiso básico para el dashboard
         { key: 'dashboard.access' }
       ]
