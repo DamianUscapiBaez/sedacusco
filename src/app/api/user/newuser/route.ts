@@ -10,7 +10,7 @@ export async function POST(request: Request) {
             names, // Removed as it does not exist in the PreCatastrals model
             username,
             password,
-            role_id,
+            roleId,
             status
         } = body;
 
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
                 username,
                 password: hashedPassword,
                 status,
-                role: { connect: { id: Number(role_id) } },  // Conexión con cliente
+                role: { connect: { id: Number(roleId) } },  // Conexión con cliente
             },
         });
 

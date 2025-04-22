@@ -136,7 +136,7 @@ export default function LotPage() {
                     <CardTitle className="text-2xl font-bold">Lotes</CardTitle>
                     <CardDescription className="grid grid-cols-1 md:grid-cols-2 items-center">
                         <p>Gestiona los lotes de la aplicación.</p>
-                        <PermissionWrapper permission="technician.create">
+                        <PermissionWrapper permission="lots.create">
                             <div className="flex flex-row items-center justify-center md:justify-end gap-2 w-full mt-4">
                                 <Button
                                     className="bg-emerald-500 hover:bg-emerald-600 text-white w-full md:w-auto"

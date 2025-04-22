@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { HiDocumentAdd } from "react-icons/hi";
@@ -10,7 +10,7 @@ import { PermissionWrapper } from "@/components/custom/PermissionWrapper";
 export default function ActPage() {
   const [open, setOpen] = useState<boolean>(false);
   const [editData, setEditData] = useState<any | null>(null);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [tableKey, setTableKey] = useState(0); // Key para forzar reinicio de la tabla
 
   const handleOpenEdit = (data: { [key: string]: any } | null = null) => {
     setEditData(data);
@@ -19,17 +19,12 @@ export default function ActPage() {
 
   const handleClose = () => setOpen(false);
 
-  const refreshTable = () => {
-    setRefreshTrigger(prev => prev + 1);
-  };
+  const refreshTable = useCallback(() => {
+    setTableKey(prev => prev + 1);
+  }, []);
 
-  const fetchData = async (params: {
-    page?: number;
-    limit?: number;
-    file?: string;
-    inscription?: string;
-    meter?: string;
-  } = {}) => {
+  const fetchData = useCallback(async (params: any = {}) => {
+
     try {
       const queryParams = new URLSearchParams({
         page: params.page?.toString() || "1",
@@ -49,7 +44,8 @@ export default function ActPage() {
       console.error("Error fetching data:", error);
       throw error;
     }
-  };
+  }, []);
+
   const handleDelete = (id: number) => {
     // Lógica para eliminar
     console.log("Eliminar registro con ID:", id);
@@ -81,7 +77,6 @@ export default function ActPage() {
             onEdit={handleOpenEdit}
             onDelete={handleDelete}
             fetchData={fetchData}
-            refreshTrigger={refreshTrigger} // Cambia esto según tu lógica de actualización
           />
         </CardContent>
       </Card>

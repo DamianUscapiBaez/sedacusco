@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import PreCatastralTable from "./components/table-precatastral";
@@ -11,14 +11,9 @@ import { PermissionWrapper } from "@/components/custom/PermissionWrapper";
 export default function PreCatastralPage() {
   const [open, setOpen] = useState<boolean>(false);
   const [editData, setEditData] = useState<any | null>(null);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [tableKey, setTableKey] = useState(0); // Key para forzar reinicio de la tabla
 
-  const fetchData = async (params: {
-    page?: number;
-    limit?: number;
-    file?: string;
-    inscription?: string;
-  } = {}) => {
+  const fetchData = useCallback(async (params: any = {}) => {
     try {
       const queryParams = new URLSearchParams({
         page: params.page?.toString() || "1",
@@ -37,7 +32,7 @@ export default function PreCatastralPage() {
       console.error("Error fetching data:", error);
       throw error;
     }
-  };
+  }, []);
 
   const handleOpenEdit = (data: { [key: string]: any } | null = null) => {
     setEditData(data);
@@ -49,14 +44,14 @@ export default function PreCatastralPage() {
     setEditData(null);
   };
 
-  const refreshTable = () => {
-    setRefreshTrigger(prev => prev + 1);
-  };
+  const refreshTable = useCallback(() => {
+    setTableKey(prev => prev + 1);
+  }, []);
 
-  const handleDelete = (id: number) => {
-    // Lógica para eliminar
+  const handleDelete = useCallback((id: number) => {
     console.log("Eliminar registro con ID:", id);
-  };
+  }, []);
+  
   return (
     <div className="mt-4 w-full max-w-[100vw] px-4">
       <Card className="w-full max-w-[100vw] mx-auto overflow-visible">
@@ -81,7 +76,6 @@ export default function PreCatastralPage() {
             onDelete={handleDelete}
             onEdit={handleOpenEdit}
             fetchData={fetchData}
-            refreshTrigger={refreshTrigger}
           />
         </CardContent>
       </Card>

@@ -19,10 +19,10 @@ export async function POST(request: Request) {
             keys,
             cover_material,
             observations,
-            customer_id,
-            technician_id,
+            customerId,
+            technicianId,
             is_located,
-            lot_id,
+            lotId,
             created_by
         } = body;
 
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
 
         // ✅ Verifica si ya existe un registro con este cliente
         const inscripcionExistente = await prisma.preCatastral.findFirst({
-            where: { customer_id }
+            where: { customerId }
         });
 
         if (inscripcionExistente) {
@@ -67,9 +67,9 @@ export async function POST(request: Request) {
                 cover_material,
                 observations,
                 is_located,
-                customer: { connect: { id: customer_id } },  // Conexión con cliente
-                technician: { connect: { id: technician_id } }, // Conexión con técnico
-                lot: { connect: { id: Number(lot_id) } }, // Conexion con lot
+                customer: { connect: { id: customerId } },  // Conexión con cliente
+                technician: { connect: { id: technicianId } }, // Conexión con técnico
+                lot: { connect: { id: Number(lotId) } }, // Conexion con lot
                 // ✅ Historial de la creación
                 histories: {
                     create: [

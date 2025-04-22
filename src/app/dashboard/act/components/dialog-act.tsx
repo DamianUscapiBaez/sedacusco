@@ -15,12 +15,12 @@ import CloseIcon from "@mui/icons-material/Close";
 import { LotData } from "@/types/types";
 
 const baseActSchema = z.object({
-    lot_id: z.string().min(1, "Lote es requerido"),
+    lotId: z.string().min(1, "Lote es requerido"),
     file_number: z.string().min(1, "Número de ficha requerido").regex(/^\d+$/, "Solo se permiten números"),
     inscription_number: z.string().min(1, "Número de inscripción requerido").regex(/^\d+$/, "Solo se permiten números"),
     file_date: z.string(),
     file_time: z.string(),
-    customer_id: z.number(),
+    customerId: z.number(),
     customer_name: z.string().min(1, "Nombre requerido"),
     customer_address: z.string().min(1, "Dirección requerida"),
     old_meter: z.string().min(1, "Medidor Antiguo requerido"),
@@ -35,10 +35,10 @@ const baseActSchema = z.object({
         "CONEXION_3_4",
         "DIFICIL_ACCESO"
     ]).optional(),
-    technician_id: z.number(),
+    technicianId: z.number(),
     technician_dni: z.string().min(8, "DNI debe tener 8 dígitos").regex(/^\d+$/, "Solo números"),
     technician_name: z.string().min(1, "Nombre requerido"),
-    meterrenovation_id: z.number(),
+    meterrenovationId: z.number(),
     meter_number: z.string().optional(), // Hacemos opcional inicialmente
     verification_code: z.string().optional(), // Hacemos opcional inicialmente
     rotating_pointer: z.enum(["SI", "NO"]).optional(),
@@ -51,20 +51,20 @@ const DEFAULT_VALUES: Partial<ActForm> = {
     file_time: "",
     file_number: "",
     inscription_number: "",
-    technician_id: 0,
+    technicianId: 0,
     technician_name: "",
     technician_dni: "",
-    lot_id: "2",
+    lotId: "2",
     rotating_pointer: "SI",
     meter_security_seal: "NO",
     reading_impossibility_viewer: "NO",
     observations: "SIN_OBSERVACIONES",
-    customer_id: 0,
+    customerId: 0,
     customer_name: "",
     customer_address: "",
     old_meter: "",
     reading: "",
-    meterrenovation_id: 0,
+    meterrenovationId: 0,
     meter_number: "",
     verification_code: "",
 };
@@ -187,18 +187,18 @@ export default function ActDialog({ open, onClose, editData, refreshTable }: { o
 
             const setters = {
                 inscription: () => {
-                    setValue('customer_id', Number(result.id) || 0);
+                    setValue('customerId', Number(result.id) || 0);
                     setValue('customer_name', result.customer_name || '', { shouldValidate: true });
                     setValue('customer_address', result.address || '', { shouldValidate: true });
                     setValue('old_meter', result.old_meter || '', { shouldValidate: true });
                 },
                 meterrenovation: () => {
-                    setValue('meterrenovation_id', Number(result.id) || 0);
+                    setValue('meterrenovationId', Number(result.id) || 0);
                     setValue('meter_number', result.meter_number || '', { shouldValidate: true });
                     setValue('verification_code', result.verification_code || '', { shouldValidate: true });
                 },
                 technician: () => {
-                    setValue('technician_id', Number(result.id) || 0);
+                    setValue('technicianId', Number(result.id) || 0);
                     setValue('technician_name', result.name || '', { shouldValidate: true });
                 }
             };
@@ -304,11 +304,11 @@ export default function ActDialog({ open, onClose, editData, refreshTable }: { o
             reset({
                 ...DEFAULT_VALUES,
                 ...rest,
-                lot_id: result.data.lot_id?.toString() || "2"
+                lotId: result.data.lotId?.toString() || "2"
             });
 
             if (customer) {
-                setValue('customer_id', customer.id || 0);
+                setValue('customerId', customer.id || 0);
                 setValue('customer_name', customer.customer_name || '');
                 setValue('customer_address', customer.address || '');
                 setValue('inscription_number', customer.inscription || '');
@@ -316,13 +316,13 @@ export default function ActDialog({ open, onClose, editData, refreshTable }: { o
             }
 
             if (technician) {
-                setValue('technician_id', technician.id || 0);
+                setValue('technicianId', technician.id || 0);
                 setValue('technician_name', technician.name || '');
                 setValue('technician_dni', technician.dni || '');
             }
 
             if (meter) {
-                setValue('meterrenovation_id', meter.id || 0);
+                setValue('meterrenovationId', meter.id || 0);
                 setValue('meter_number', meter.meter_number || '');
                 setValue('verification_code', meter.verification_code || '');
             }
@@ -450,19 +450,19 @@ export default function ActDialog({ open, onClose, editData, refreshTable }: { o
                                         )}
                                     </div>
                                     <div className="space-y-1">
-                                        <Label htmlFor="lot_id">Lote</Label>
+                                        <Label htmlFor="lotId">Lote</Label>
                                         <Controller
-                                            name="lot_id"
+                                            name="lotId"
                                             control={control}
                                             render={({ field }) => (
                                                 <Select
                                                     value={field.value} // Set default value to "2" if field.value is undefined
                                                     onValueChange={(value) => {
                                                         field.onChange(value);
-                                                        setValue("lot_id", value);
+                                                        setValue("lotId", value);
                                                     }}
                                                 >
-                                                    <SelectTrigger className={`w-full mt-2 ${errors.lot_id ? "border-red-500" : ""}`}>
+                                                    <SelectTrigger className={`w-full mt-2 ${errors.lotId ? "border-red-500" : ""}`}>
                                                         <SelectValue placeholder="Seleccione" />
                                                     </SelectTrigger>
                                                     <SelectContent className="max-h-60 overflow-auto">
@@ -475,13 +475,13 @@ export default function ActDialog({ open, onClose, editData, refreshTable }: { o
                                                 </Select>
                                             )}
                                         />
-                                        {errors.lot_id && (
-                                            <p className="text-xs text-red-500 mt-1">{errors.lot_id.message}</p>
+                                        {errors.lotId && (
+                                            <p className="text-xs text-red-500 mt-1">{errors.lotId.message}</p>
                                         )}
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <input type="hidden" {...register('customer_id')} />
+                                    <input type="hidden" {...register('customerId')} />
                                     <div className="space-y-1">
                                         <Label htmlFor="customer_name">Nombre del usuario</Label>
                                         <Input
@@ -515,7 +515,7 @@ export default function ActDialog({ open, onClose, editData, refreshTable }: { o
                                     🛠️ Datos de Reinstalación
                                 </h3>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <input type="hidden" {...register('meterrenovation_id')} />
+                                    <input type="hidden" {...register('meterrenovationId')} />
                                     <div className="space-y-1">
                                         <div className="space-y-1">
                                             <Label htmlFor="meter_number">Nro Medidor *</Label>
@@ -746,7 +746,7 @@ export default function ActDialog({ open, onClose, editData, refreshTable }: { o
                                 </h3>
 
                                 <div className="grid sm:grid-cols-2 gap-3">
-                                    <input type="hidden" {...register('technician_id')} />
+                                    <input type="hidden" {...register('technicianId')} />
                                     <div className="space-y-1">
                                         <Label htmlFor="technician_dni">DNI Técnico *</Label>
                                         <div className="flex gap-2">

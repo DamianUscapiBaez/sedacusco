@@ -22,8 +22,8 @@ export async function PUT(request: Request) {
             keys,
             cover_material,
             observations,
-            customer_id,
-            technician_id,
+            customerId,
+            technicianId,
             is_located,
             updated_by  // Técnico que realiza la actualización
         } = body;
@@ -58,7 +58,7 @@ export async function PUT(request: Request) {
         // ✅ Verifica si ya existe un registro con este cliente, excluyendo el registro actual
         const inscripcionExistente = await prisma.preCatastral.findFirst({
             where: {
-                customer_id,
+                customerId,
                 NOT: { id },  // Excluye el registro actual
             },
         });
@@ -88,8 +88,8 @@ export async function PUT(request: Request) {
                 cover_material,
                 observations,
                 is_located,
-                customer: { connect: { id: customer_id } },  // Conexión con cliente
-                technician: { connect: { id: technician_id } }, // Conexión con técnico
+                customer: { connect: { id: customerId } },  // Conexión con cliente
+                technician: { connect: { id: technicianId } }, // Conexión con técnico
                 histories: {
                     create: [
                         {

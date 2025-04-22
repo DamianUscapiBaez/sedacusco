@@ -9,18 +9,18 @@ export async function PUT(request: Request) {
         // Paginación
         const id = Number(searchParams.get("id"));
         const {
-            lot_id,
+            lotId,
             file_number,
             file_date,
             file_time,
-            meterrenovation_id,
+            meterrenovationId,
             reading,
             observations,
             rotating_pointer,
             meter_security_seal,
             reading_impossibility_viewer,
-            customer_id,
-            technician_id,
+            customerId,
+            technicianId,
             updated_by
         } = body;
 
@@ -54,7 +54,7 @@ export async function PUT(request: Request) {
         // ✅ Verifica si ya existe un registro con este cliente, excluyendo el registro actual
         const inscripcionExistente = await prisma.act.findFirst({
             where: {
-                customer_id,
+                customerId,
                 NOT: { id },  // Excluye el registro actual
             },
         });
@@ -78,10 +78,10 @@ export async function PUT(request: Request) {
                 rotating_pointer,
                 meter_security_seal,
                 reading_impossibility_viewer,
-                lot: { connect: { id: Number(lot_id) } },
-                customer: { connect: { id: customer_id } },  // Conexión con cliente
-                technician: { connect: { id: technician_id } }, // Conexión con técnico
-                meter: { connect: { id: meterrenovation_id } }, // Conexión con medidor
+                lot: { connect: { id: Number(lotId) } },
+                customer: { connect: { id: customerId } },  // Conexión con cliente
+                technician: { connect: { id: technicianId } }, // Conexión con técnico
+                meter: { connect: { id: meterrenovationId } }, // Conexión con medidor
                 histories: {
                     create: [
                         {

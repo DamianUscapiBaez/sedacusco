@@ -11,7 +11,7 @@ export async function GET(request: Request) {
     // Consultar la cantidad de actas con observación "sin_observaciones"
     const count = await prisma.act.count({
       where: {
-        lot_id: lot,
+        lotId: lot,
         observations: "SIN_OBSERVACIONES",
       },
     });

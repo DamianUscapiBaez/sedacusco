@@ -99,8 +99,8 @@ export default function LotTable({ onEdit, onDelete, fetchData, refreshTrigger }
                                             <ActionButtons
                                                 onEdit={() => onEdit(item)}
                                                 onDelete={item.id ? () => onDelete(item.id) : undefined}
-                                                editPermission="technician.update"
-                                                deletePermission="technician.delete"
+                                                editPermission="lots.update"
+                                                deletePermission="lots.delete"
                                             />
                                         </TableCell>
                                     </TableRow>

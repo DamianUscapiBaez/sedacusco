@@ -6,18 +6,18 @@ export async function POST(request: Request) {
         const body = await request.json();
 
         const {
-            lot_id,
+            lotId,
             file_number,
             file_date,
             file_time,
-            meterrenovation_id,
+            meterrenovationId,
             reading,
             observations,
             rotating_pointer,
             meter_security_seal,
             reading_impossibility_viewer,
-            customer_id,
-            technician_id,
+            customerId,
+            technicianId,
             created_by
         } = body;
 
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
 
         // ✅ Verifica si ya existe un registro con este cliente
         const inscripcionExistente = await prisma.act.findFirst({
-            where: { customer_id }
+            where: { customerId }
         });
 
         if (inscripcionExistente) {
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
 
         // ✅ Verifica si ya existe un registro con este medidor
         const meterRenovation = await prisma.act.findFirst({
-            where: { meterrenovation_id }
+            where: { meterrenovationId }
         });
 
         if (meterRenovation) {
@@ -69,11 +69,11 @@ export async function POST(request: Request) {
                 rotating_pointer,
                 meter_security_seal,
                 reading_impossibility_viewer,
-                customer: { connect: { id: customer_id } }, // Connect customer relation
-                technician: { connect: { id: technician_id } }, // Connect technician relation
-                meter: { connect: { id: meterrenovation_id } }, // Connect meter relation
+                customer: { connect: { id: customerId } }, // Connect customer relation
+                technician: { connect: { id: technicianId } }, // Connect technician relation
+                meter: { connect: { id: meterrenovationId } }, // Connect meter relation
                 // ✅ Historial de la creación
-                lot: { connect: { id: Number(lot_id) } },
+                lot: { connect: { id: Number(lotId) } },
                 histories: {
                     create: [
                         {

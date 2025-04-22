@@ -60,7 +60,7 @@ export async function GET(request: Request) {
                         updatedActHistories: {
                             some: {
                                 act: {
-                                    lot_id: lot,
+                                    lotId: lot,
                                     histories: {
                                         some: {
                                             updated_at: dateFilter, // Filtrar por fecha
@@ -74,7 +74,7 @@ export async function GET(request: Request) {
                         updatedPreCatastrals: {
                             some: {
                                 preCatastral: {
-                                    lot_id: lot,
+                                    lotId: lot,
                                     histories: {
                                         some: {
                                             updated_at: dateFilter, // Filtrar por fecha

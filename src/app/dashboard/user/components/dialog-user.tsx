@@ -23,7 +23,7 @@ const UserSchema = z.object({
     names: z.string().optional(),
     username: z.string().min(1, "Nombre de usuario requerido"),
     password: z.string(),
-    role_id: z.string().min(1, "Rol requerido"),
+    roleId: z.string().min(1, "Rol requerido"),
     status: z.enum(["ACTIVE", "INACTIVE"]),
 });
 
@@ -58,7 +58,7 @@ export default function UserDialog({ open, onClose, editData, onSubmit }: {
             const response = await fetch(`/api/user/getuser?id=${id}`);
             const result = await response.json();
             reset(result.data);
-            setValue("role_id", result.data.role.id.toString());
+            setValue("roleId", result.data.role.id.toString());
         } catch (error) {
             console.error("Error fetching user:", error);
         }
@@ -76,7 +76,7 @@ export default function UserDialog({ open, onClose, editData, onSubmit }: {
                     names: "",
                     username: "",
                     password: "",
-                    role_id: "",
+                    roleId: "",
                     status: "ACTIVE",
                 });
             }
@@ -145,17 +145,17 @@ export default function UserDialog({ open, onClose, editData, onSubmit }: {
                         <div className="space-y-1">
                             <Label htmlFor="role">Rol *</Label>
                             <Controller
-                                name="role_id"
+                                name="roleId"
                                 control={control}
                                 render={({ field }) => (
                                     <Select
                                         value={field.value}
                                         onValueChange={(value) => {
                                             field.onChange(value);
-                                            setValue("role_id", value);
+                                            setValue("roleId", value);
                                         }}
                                     >
-                                        <SelectTrigger className={`w-full mt-2 ${errors.role_id ? "border-red-500" : ""}`}>
+                                        <SelectTrigger className={`w-full mt-2 ${errors.roleId ? "border-red-500" : ""}`}>
                                             <SelectValue placeholder="Seleccionar rol" />
                                         </SelectTrigger>
                                         <SelectContent className="max-h-60 overflow-auto">
@@ -168,8 +168,8 @@ export default function UserDialog({ open, onClose, editData, onSubmit }: {
                                     </Select>
                                 )}
                             />
-                            {errors.role_id && (
-                                <p className="text-xs text-red-500">{errors.role_id.message}</p>
+                            {errors.roleId && (
+                                <p className="text-xs text-red-500">{errors.roleId.message}</p>
                             )}
                         </div>
                         <div className="space-y-1">

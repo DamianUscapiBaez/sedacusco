@@ -4,66 +4,113 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FiChevronLeft, FiChevronRight, FiSearch, FiChevronDown, FiChevronUp } from "react-icons/fi";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RiResetRightFill } from "react-icons/ri";
 import { ActionButtons } from "@/components/custom/ActionButtons";
-import { ActData } from "@/types/types";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { UserIcon } from "lucide-react";
 
 interface ApiResponse {
-  data: ActData[];
+  data: LabeledData[];
   total: number;
 }
 
-interface Props {
-  onEdit: (data: ActData) => void;
-  onDelete: (id: number) => void;
-  fetchData: (params: { page: number; limit: number; file?: string; inscription?: string; meter?: string }) => Promise<ApiResponse>;
-  refreshTrigger: number;
+interface FetchDataParams {
+  page: number;
+  limit: number;
+  box?: string;
+  meter?: string;
 }
 
-export default function LabeledTable({ onEdit, onDelete, fetchData, refreshTrigger }: Props) {
-  const [data, setData] = useState<ActData[]>([]);
+interface LabeledData {
+  id: number;
+  name: string;
+  meters?: MeterType[];
+  createdAt: string;
+}
+
+interface MeterType {
+  id: number;
+  old_meter: string;
+  reading: string;
+  labeled_id?: number;
+}
+
+interface LabeledTableProps {
+  onEdit: (data: LabeledData) => void;
+  onDelete: (id: number) => void;
+  fetchData: (params: FetchDataParams) => Promise<ApiResponse>;
+}
+
+export default function LabeledTable({ onEdit, onDelete, fetchData }: LabeledTableProps) {
+  // Estados principales
+  const [data, setData] = useState<LabeledData[]>([]);
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalRows, setTotalRows] = useState(0);
   const [loading, setLoading] = useState(false);
   const [expandedRows, setExpandedRows] = useState<number[]>([]);
 
-  // Estados para los filtros
-  const [searchByFile, setSearchByFile] = useState("");
-  const [searchByInscription, setSearchByInscription] = useState("");
-  const [searchByMeter, setSearchByMeter] = useState("");
+  // Estados de búsqueda
+  const [searchValues, setSearchValues] = useState({
+    box: "",
+    meter: ""
+  });
+  const [appliedFilters, setAppliedFilters] = useState({
+    box: "",
+    meter: ""
+  });
 
-  const loadData = async () => {
+  // Carga de datos con memoización
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const result = await fetchData({
         page,
         limit: rowsPerPage,
-        file: searchByFile,
-        inscription: searchByInscription,
-        meter: searchByMeter,
+        ...(appliedFilters.box && { box: appliedFilters.box }),
+        ...(appliedFilters.meter && { meter: appliedFilters.meter })
       });
       setData(result.data);
       setTotalRows(result.total);
-      setExpandedRows([]); // Reset expanded rows when data changes
+      setExpandedRows([]);
     } catch (error) {
       console.error("Error loading data:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, rowsPerPage, appliedFilters, fetchData]);
 
+  // Efecto para cargar datos cuando cambian las dependencias
   useEffect(() => {
     loadData();
-  }, [page, rowsPerPage, refreshTrigger]);
+  }, [loadData]);
+
+  // Manejadores de eventos
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setSearchValues(prev => ({ ...prev, [name]: value }));
+  };
 
   const handleSearch = () => {
+    setAppliedFilters(searchValues);
+    setPage(1); // Resetear a primera página al buscar
+  };
+
+  const handleReset = () => {
+    setSearchValues({ box: "", meter: "" });
+    setAppliedFilters({ box: "", meter: "" });
     setPage(1);
-    loadData();
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') handleSearch();
+  };
+
+  const toggleRowExpand = (id: number) => {
+    setExpandedRows(prev =>
+      prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]
+    );
   };
 
   const handleRowsPerPageChange = (value: string) => {
@@ -71,100 +118,69 @@ export default function LabeledTable({ onEdit, onDelete, fetchData, refreshTrigg
     setPage(1);
   };
 
-  const toggleRowExpand = (id: number) => {
-    setExpandedRows(prev =>
-      prev.includes(id)
-        ? prev.filter(rowId => rowId !== id)
-        : [...prev, id]
-    );
-  };
-
+  // Cálculos
   const totalPages = Math.ceil(totalRows / rowsPerPage);
-
-  const handleReset = async () => {
-    setSearchByFile('');
-    setSearchByInscription('');
-    setSearchByMeter('')
-    setPage(1);
-    await loadData();
-  };
-
+  
   return (
     <div className="space-y-4">
-      {/* Filtros responsive con botones compactos */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-        {/* Inputs - ocuparán 1 columna en móvil, se ajustan en pantallas más grandes */}
-        <div className="col-span-2 sm:col-span-1">
-          <Input
-            placeholder="Nro. Ficha"
-            value={searchByFile}
-            onChange={(e) => setSearchByFile(e.target.value)}
-            className="h-8 text-sm"
-          />
-        </div>
-        <div className="col-span-2 sm:col-span-1">
-          <Input
-            placeholder="Inscripción"
-            value={searchByInscription}
-            onChange={(e) => setSearchByInscription(e.target.value)}
-            className="h-8 text-sm"
-          />
-        </div>
-        <div className="col-span-2 sm:col-span-1">
-          <Input
-            placeholder="Medidor"
-            value={searchByMeter}
-            onChange={(e) => setSearchByMeter(e.target.value)}
-            className="h-8 text-sm"
-          />
-        </div>
-
-        {/* Botones - se ajustan según el tamaño de pantalla */}
+      {/* Filtros */}
+      <div className="flex gap-2 flex-wrap">
+        <Input
+          name="box"
+          placeholder="Buscar caja..."
+          value={searchValues.box}
+          onChange={handleSearchChange}
+          onKeyPress={handleKeyPress}
+          className="h-8 text-sm flex-1 min-w-[150px]"
+        />
+        <Input
+          name="meter"
+          placeholder="Buscar medidor..."
+          value={searchValues.meter}
+          onChange={handleSearchChange}
+          onKeyPress={handleKeyPress}
+          className="h-8 text-sm flex-1 min-w-[150px]"
+        />
         <Button
           onClick={handleSearch}
           size="sm"
-          className="h-8 col-span-1"
+          className="h-8"
+          disabled={loading}
         >
-          <div className="flex items-center gap-1">
-            <FiSearch className="h-3 w-3" />
-            <span className="hidden sm:inline text-sm">Buscar</span>
-          </div>
+          <FiSearch className="h-3 w-3 mr-1" />
+          Buscar
         </Button>
-
         <Button
           onClick={handleReset}
           size="sm"
-          className="h-8 col-span-1"
+          className="h-8"
           variant="outline"
+          disabled={(!searchValues.box && !searchValues.meter) || loading}
         >
-          <div className="flex items-center gap-1">
-            <RiResetRightFill className="h-3 w-3" />
-            <span className="hidden sm:inline text-sm">Resetear</span>
-          </div>
+          <RiResetRightFill className="h-3 w-3 mr-1" />
+          Resetear
         </Button>
       </div>
-      {/* Tabla con scroll horizontal y cabecera fija */}
+
+      {/* Tabla */}
       <div className="rounded-md border relative">
-        <ScrollArea className="h-[calc(100vh-370px)] w-full">
+        <ScrollArea className="h-[calc(100vh-380px)] w-full overflow-auto">
           <Table className="table-fixed w-full">
             <TableHeader className="sticky top-0 bg-background z-10">
               <TableRow className="hover:bg-transparent">
                 <TableHead className="w-8"></TableHead>
-                <TableHead className="w-20">N° Ficha</TableHead>
-                <TableHead className="w-24">Inscripción</TableHead>
-                <TableHead className="w-24">Fecha</TableHead>
-                <TableHead className="min-w-32">Usuario</TableHead>
-                <TableHead className="w-24">Nro Medidor</TableHead>
-                <TableHead className="w-32">Certificación</TableHead>
-                <TableHead className="min-w-32">Técnico</TableHead>
-                <TableHead className="w-32 text-right">Acciones</TableHead>
+                <TableHead className="w-12">ID</TableHead>
+                <TableHead>Nombre Caja</TableHead>
+                <TableHead>Cant. Medidores</TableHead>
+                <TableHead>Fecha Creación</TableHead>
+                <TableHead className="text-right w-24">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
-                Array.from({ length: 5 }).map((_, index) => (
+                Array.from({ length: 6 }).map((_, index) => (
                   <TableRow key={`skeleton-${index}`}>
-                    {Array.from({ length: 9 }).map((_, cellIdx) => (
+                    {Array.from({ length: 6 }).map((_, cellIdx) => (
                       <TableCell key={`skeleton-cell-${index}-${cellIdx}`}>
                         <Skeleton className="h-4 w-full" />
                       </TableCell>
@@ -173,8 +189,8 @@ export default function LabeledTable({ onEdit, onDelete, fetchData, refreshTrigg
                 ))
               ) : data.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center py-8">
-                    {searchByFile || searchByInscription
+                  <TableCell colSpan={6} className="text-center py-8">
+                    {appliedFilters.box || appliedFilters.meter
                       ? "No se encontraron resultados"
                       : "No hay datos disponibles"}
                   </TableCell>
@@ -190,113 +206,71 @@ export default function LabeledTable({ onEdit, onDelete, fetchData, refreshTrigg
                           className="h-8 w-8 p-0"
                           onClick={() => toggleRowExpand(item.id)}
                         >
-                          {expandedRows.includes(item.id) ?
-                            <FiChevronUp className="h-4 w-4" /> :
+                          {expandedRows.includes(item.id) ? (
+                            <FiChevronUp className="h-4 w-4" />
+                          ) : (
                             <FiChevronDown className="h-4 w-4" />
-                          }
+                          )}
                         </Button>
                       </TableCell>
-                      <TableCell className="py-1 truncate text-xs">{item.file_number}</TableCell>
-                      <TableCell className="py-1 truncate text-xs">{item.customer.inscription}</TableCell>
-                      <TableCell className="py-1 truncate text-xs">{item.file_date}</TableCell>
-                      <TableCell className="py-1 truncate text-xs">{item.customer.customer_name}</TableCell>
-                      <TableCell className="py-1 truncate text-xs">{item.meter.meter_number}</TableCell>
-                      <TableCell className="py-1 truncate text-xs">{item.meter.verification_code}</TableCell>
-                      <TableCell className="py-1 truncate text-xs">{item.technician.name}</TableCell>
+                      <TableCell className="py-1 text-xs">{item.id}</TableCell>
+                      <TableCell className="py-1 text-xs">{item.name}</TableCell>
+                      <TableCell className="py-1 text-xs">{item.meters?.length || 0}</TableCell>
+                      <TableCell className="py-1 text-xs">{item.createdAt}</TableCell>
                       <TableCell className="py-1 flex justify-end gap-1">
                         <ActionButtons
                           onEdit={() => onEdit(item)}
-                          onDelete={item.id ? () => onDelete(item.id) : undefined}
-                          editPermission="acts.update"
-                          deletePermission="acts.delete"
+                          onDelete={() => onDelete(item.id)}
+                          editPermission="labeled.update"
+                          deletePermission="labeled.delete"
                         />
                       </TableCell>
                     </TableRow>
                     {expandedRows.includes(item.id) && (
-                      <TableRow className="bg-muted/10 hover:bg-muted/20 transition-colors">
-                        <TableCell colSpan={9} className="p-0">
-                          <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 text-xs">
-                            {/* Información del Cliente */}
-                            <div className="space-y-2 ">
-                              <h4 className="font-medium text-xs mb-3 pb-2 border-b border-muted-foreground/20">Información del Cliente</h4>
-                              <div className="grid grid-cols-5 gap-1">
-                                <span className="text-muted-foreground col-span-2">Dirección:</span>
-                                <span className="font-medium col-span-3 whitespace-pre-wrap break-words" title={item.customer.address}>
-                                  {item.customer.address}
-                                </span>
-                                <span className="text-muted-foreground col-span-2">Medidor Antiguo:</span>
-                                <span className="font-medium col-span-3">{item.customer.old_meter}</span>
-                                <span className="text-muted-foreground col-span-2">Lectura:</span>
-                                <span className="font-medium col-span-3">{item.reading}</span>
-                              </div>
+                      <TableRow className="bg-muted/5">
+                        <TableCell colSpan={6} className="p-0">
+                          <div className="px-3 py-2 space-y-2">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                              </svg>
+                              <span>Medidores ({item?.meters?.length || 0})</span>
                             </div>
-                            {/* Detalles del Medidor */}
-                            <div className="space-y-2">
-                              <h4 className="font-medium text-xs mb-3 pb-2 border-b border-muted-foreground/20">Detalles del Medidor</h4>
-                              <div className="grid grid-cols-5 gap-1">
-                                <span className="text-muted-foreground col-span-2">Número:</span>
-                                <span className="font-medium col-span-3">{item.meter.meter_number}</span>
-
-                                <span className="text-muted-foreground col-span-2">Código:</span>
-                                <span className="font-medium col-span-3">{item.meter.verification_code}</span>
-                              </div>
-                            </div>
-                            {/* Historial */}
-                            <div className="space-y-2 col-span-1 md:col-span-2">
-                              <h4 className="font-medium text-xs mb-3 pb-2 border-b border-muted-foreground/20">Historial</h4>
-                              {item.histories && item.histories.length > 0 ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                  {/* Creación */}
-                                  <div className="space-y-1">
-                                  <div className="flex items-center gap-2">
-                                    <span className="bg-primary/10 text-primary px-2 py-1 rounded-full">Creación</span>
-                                    <span className="text-muted-foreground">
-                                    {item.histories.find(h => h.action === "CREATE")?.updated_at
-                                      ? new Date(item.histories.find(h => h.action === "CREATE")?.updated_at ?? "").toLocaleDateString('es-PE', {
-                                      day: '2-digit',
-                                      month: 'short',
-                                      year: 'numeric'
-                                      })
-                                      : "N/A"}
-                                    </span>
-                                  </div>
-                                  <p className="font-medium flex items-center gap-1">
-                                    <UserIcon className="h-4 w-4 text-muted-foreground" />
-                                    {item.histories.find(h => h.action === "CREATE")?.user?.names || "N/A"}
-                                  </p>
-                                  </div>
-                                  {/* Actualización (si existe) */}
-                                  {item.histories.some(h => h.action === "UPDATE") && (
-                                  <div className="space-y-1">
-                                    <div className="flex items-center gap-2">
-                                    <span className="bg-blue-100 text-blue-600 px-2 py-1 rounded-full">Actualización</span>
-                                    <span className="text-muted-foreground">
-                                      {item.histories.find(h => h.action === "UPDATE")?.updated_at
-                                      ? new Date(item.histories.find(h => h.action === "UPDATE")?.updated_at ?? "").toLocaleDateString('es-PE', {
-                                        day: '2-digit',
-                                        month: 'short',
-                                        year: 'numeric'
-                                      })
-                                      : "N/A"}
-                                    </span>
+                            {item?.meters && item.meters.length > 0 ? (
+                              <ScrollArea className="w-full">
+                                <div className="flex gap-2 py-1">
+                                  {item.meters.map((meter) => (
+                                    <div
+                                      key={meter.id}
+                                      className="min-w-[180px] border rounded-md p-2 bg-background hover:bg-muted/50 transition-colors"
+                                    >
+                                      <div className="flex items-center justify-between mb-1">
+                                        <span className="text-xs font-medium">#{meter.id}</span>
+                                      </div>
+                                      <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs">
+                                        <span className="text-muted-foreground">Antiguo:</span>
+                                        <span>{meter.old_meter || '-'}</span>
+                                        <span className="text-muted-foreground">Lectura:</span>
+                                        <span className={meter.reading === 'ILEGIBLE' ? 'text-orange-500' : 'text-green-600'}>
+                                          {meter.reading}
+                                        </span>
+                                      </div>
                                     </div>
-                                    <p className="font-medium flex items-center gap-1">
-                                    <UserIcon className="h-4 w-4 text-muted-foreground" />
-                                    {item.histories.findLast(h => h.action === "UPDATE")?.user?.names || "N/A"}
-                                    </p>
-                                    {item.histories.findLast(h => h.action === "UPDATE")?.details && (
-                                    <div className="bg-muted/30 p-2 rounded mt-1">
-                                      <p className="text-muted-foreground font-medium">Detalles:</p>
-                                      <p className="whitespace-pre-wrap">{item.histories.findLast(h => h.action === "UPDATE")?.details}</p>
-                                    </div>
-                                    )}
-                                  </div>
-                                  )}
+                                  ))}
                                 </div>
-                              ) : (
-                                <div className="text-muted-foreground italic">No hay registros de historial</div>
-                              )}
-                            </div>
+                                <ScrollBar orientation="horizontal" />
+                              </ScrollArea>
+                            ) : (
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground py-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <circle cx="12" cy="12" r="10"></circle>
+                                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                                No hay medidores registrados
+                              </div>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
@@ -306,7 +280,6 @@ export default function LabeledTable({ onEdit, onDelete, fetchData, refreshTrigg
               )}
             </TableBody>
           </Table>
-          <ScrollBar orientation="horizontal" />
         </ScrollArea>
       </div>
 
@@ -321,7 +294,7 @@ export default function LabeledTable({ onEdit, onDelete, fetchData, refreshTrigg
             onValueChange={handleRowsPerPageChange}
           >
             <SelectTrigger className="h-8 w-[80px]">
-              <SelectValue placeholder={rowsPerPage} />
+              <SelectValue placeholder={rowsPerPage.toString()} />
             </SelectTrigger>
             <SelectContent side="top">
               {[10, 25, 50, 100].map((size) => (

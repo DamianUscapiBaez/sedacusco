@@ -21,18 +21,25 @@ interface Props {
   onEdit: (data: PreCatastralData) => void;
   onDelete: (id: number) => void;
   fetchData: (params: any) => Promise<ApiResponse>;
-  refreshTrigger: number;
 }
 
-export default function PreCatastralTable({ onEdit, onDelete, fetchData, refreshTrigger }: Props) {
+export default function PreCatastralTable({ onEdit, onDelete, fetchData }: Props) {
   const [data, setData] = useState<PreCatastralData[]>([]);
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalRows, setTotalRows] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [searchByFile, setSearchByFile] = useState("");
-  const [searchByInscription, setSearchByInscription] = useState("");
   const [expandedRows, setExpandedRows] = useState<number[]>([]);
+
+  const [searchValues, setSearchValues] = useState({
+    file: "",
+    inscription: ""
+  });
+
+  const [appliedFilters, setAppliedFilters] = useState({
+    file: "",
+    inscription: ""
+  });
 
   // Memoizar la función de carga de datos
   const loadData = useCallback(async () => {
@@ -41,8 +48,8 @@ export default function PreCatastralTable({ onEdit, onDelete, fetchData, refresh
       const result = await fetchData({
         page,
         limit: rowsPerPage,
-        file: searchByFile,
-        inscription: searchByInscription
+        ...(appliedFilters.file && { box: appliedFilters.file }),
+        ...(appliedFilters.inscription && { meter: appliedFilters.inscription })
       });
       setData(result.data);
       setTotalRows(result.total);
@@ -51,24 +58,27 @@ export default function PreCatastralTable({ onEdit, onDelete, fetchData, refresh
     } finally {
       setLoading(false);
     }
-  }, [fetchData, page, rowsPerPage, searchByFile, searchByInscription]);
+  }, [page, rowsPerPage, appliedFilters, fetchData]);
 
   // Efecto para cargar datos
   useEffect(() => {
     loadData();
-  }, [page, rowsPerPage, refreshTrigger]);
-
+  }, [loadData]);
   // Manejar búsqueda con debounce
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setSearchValues(prev => ({ ...prev, [name]: value }));
+  };
+
   const handleSearch = () => {
-    setPage(1);
-    loadData();
+    setAppliedFilters(searchValues);
+    setPage(1); // Resetear a primera página al buscar
   };
   // Resetear filtros
-  const handleReset = async () => {
-    setSearchByFile('');
-    setSearchByInscription('');
+  const handleReset = () => {
+    setSearchValues({ file: "", inscription: "" });
+    setAppliedFilters({ file: "", inscription: "" });
     setPage(1);
-    await loadData();
   };
 
 
@@ -94,16 +104,16 @@ export default function PreCatastralTable({ onEdit, onDelete, fetchData, refresh
         <div className="col-span-2 sm:col-span-1">
           <Input
             placeholder="Filtrar por Nro. Ficha"
-            value={searchByFile}
-            onChange={(e) => setSearchByFile(e.target.value)}
+            value={searchValues.file}
+            onChange={handleSearchChange}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
           />
         </div>
         <div className="col-span-2 sm:col-span-1">
           <Input
             placeholder="Filtrar por Inscripción"
-            value={searchByInscription}
-            onChange={(e) => setSearchByInscription(e.target.value)}
+            value={searchValues.inscription}
+            onChange={handleSearchChange}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
           />
         </div>
@@ -144,7 +154,7 @@ export default function PreCatastralTable({ onEdit, onDelete, fetchData, refresh
             </TableHeader>
             <TableBody>
               {loading ? (
-                Array.from({ length: 5 }).map((_, index) => (
+                Array.from({ length: 8 }).map((_, index) => (
                   <TableRow key={`skeleton-${index}`}>
                     {Array.from({ length: 8 }).map((_, cellIdx) => (
                       <TableCell key={`skeleton-cell-${index}-${cellIdx}`}>
@@ -156,7 +166,7 @@ export default function PreCatastralTable({ onEdit, onDelete, fetchData, refresh
               ) : data.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-8">
-                    {searchByFile || searchByInscription
+                    {searchValues.file || searchValues.inscription
                       ? "No se encontraron resultados"
                       : "No hay datos disponibles"}
                   </TableCell>

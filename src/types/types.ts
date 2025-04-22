@@ -26,6 +26,11 @@ export interface LotData {
   end_date: string;
   status: string;
 }
+export interface LabeledData {
+  id: number;
+  name: string;
+  createdAt: string;
+}
 export interface UserData {
   id: number;
   names: string;

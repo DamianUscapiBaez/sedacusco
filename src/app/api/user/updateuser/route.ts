@@ -14,7 +14,7 @@ export async function PUT(request: Request) {
             username,
             password,
             status,
-            role_id
+            roleId
         } = body;
 
         const existingUser = await prisma.user.findFirst({
@@ -42,7 +42,7 @@ export async function PUT(request: Request) {
             username,
             ...(hashedPassword && { password: hashedPassword }), // Solo actualiza si hashedPassword existe
             status,
-            role: { connect: { id: Number(role_id) } },  // Conexión con cliente
+            role: { connect: { id: Number(roleId) } },  // Conexión con cliente
             },
         });
 

@@ -22,8 +22,8 @@ import { LotData } from "@/types/types";
 const precatastralSchema = z.object({
   file_number: z.string().min(1, "Número de ficha requerido").regex(/^\d+$/, "Solo se permiten números"),
   inscription_number: z.string().min(1, "Número de inscripción requerido").regex(/^\d+$/, "Solo se permiten números"),
-  customer_id: z.number(),
-  lot_id: z.string().min(1, "Lote es requerido"),
+  customerId: z.number(),
+  lotId: z.string().min(1, "Lote es requerido"),
   customer_name: z.string().min(1, "Nombre requerido"),
   customer_address: z.string().min(1, "Dirección requerida"),
   property: z.enum(["COMERCIAL", "DOMESTICO"]),
@@ -39,7 +39,7 @@ const precatastralSchema = z.object({
   cover_material: z.string().min(1, "Material requerido"),
   keys: z.string().length(1, "Debe ser un solo dígito").regex(/^[0-2]$/, "Solo puede ser 0, 1 o 2"),
   observations: z.enum(["SIN OBSERVACIONES", "MEDIDOR PROFUNDO", "RECHADO", "BRONCE"]),
-  technician_id: z.number(),
+  technicianId: z.number(),
   technician_dni: z.string().min(8, "DNI debe tener 8 dígitos").regex(/^\d+$/, "Solo números"),
   technician_name: z.string().min(1, "Nombre requerido")
 });
@@ -48,7 +48,7 @@ type PrecatastralForm = z.infer<typeof precatastralSchema> & { id?: number };
 const DEFAULT_VALUES: Partial<PrecatastralForm> = {
   file_number: "",
   inscription_number: "",
-  lot_id: "2",
+  lotId: "2",
   property: "DOMESTICO",
   is_located: "SI",
   located_box: "EXTERIOR",
@@ -60,10 +60,10 @@ const DEFAULT_VALUES: Partial<PrecatastralForm> = {
   cover_state: "BUENO",
   cover_material: "",
   keys: "2",
-  customer_id: 0,
+  customerId: 0,
   customer_name: "",
   customer_address: "",
-  technician_id: 0,
+  technicianId: 0,
   technician_name: "",
   technician_dni: "",
   observations: "SIN OBSERVACIONES",
@@ -136,11 +136,11 @@ export default function PreCatastralDialog({ open, onClose, editData, refreshTab
       }
 
       if (type === 'inscription') {
-        setValue('customer_id', Number(result.id) || 0);
+        setValue('customerId', Number(result.id) || 0);
         setValue('customer_name', result.customer_name || '', { shouldValidate: true });
         setValue('customer_address', result.address || '', { shouldValidate: true });
       } else {
-        setValue('technician_id', Number(result.id) || 0);
+        setValue('technicianId', Number(result.id) || 0);
         setValue('technician_name', result.name || '', { shouldValidate: true });
       }
     } catch (error) {
@@ -240,14 +240,14 @@ export default function PreCatastralDialog({ open, onClose, editData, refreshTab
       reset(result.data);
 
       if (result.data.customer) {
-        setValue('customer_id', result.data.customer.id || 0);
+        setValue('customerId', result.data.customer.id || 0);
         setValue('customer_name', result.data.customer.customer_name || '');
         setValue('customer_address', result.data.customer.address || '');
         setValue('inscription_number', result.data.customer.inscription || '');
       }
 
       if (result.data.technician) {
-        setValue('technician_id', result.data.technician.id || 0);
+        setValue('technicianId', result.data.technician.id || 0);
         setValue('technician_name', result.data.technician.name || '');
         setValue('technician_dni', result.data.technician.dni || '');
       }
@@ -318,7 +318,7 @@ export default function PreCatastralDialog({ open, onClose, editData, refreshTab
                 </div>
 
                 <div className="col-span-2">
-                  <input type="hidden" {...register('customer_id')} />
+                  <input type="hidden" {...register('customerId')} />
                   <Label>Nro Inscripción *</Label>
                   <div className="flex gap-2">
                     <Input
@@ -362,19 +362,19 @@ export default function PreCatastralDialog({ open, onClose, editData, refreshTab
                   </div>
                 </div>
                 <div className="col-s">
-                  <Label htmlFor="lot_id">Lote</Label>
+                  <Label htmlFor="lotId">Lote</Label>
                   <Controller
-                    name="lot_id"
+                    name="lotId"
                     control={control}
                     render={({ field }) => (
                       <Select
                         value={field.value} // Set default value to "2" if field.value is undefined
                         onValueChange={(value) => {
                           field.onChange(value);
-                          setValue("lot_id", value);
+                          setValue("lotId", value);
                         }}
                       >
-                        <SelectTrigger className={`w-full mt-2 ${errors.lot_id ? "border-red-500" : ""}`}>
+                        <SelectTrigger className={`w-full mt-2 ${errors.lotId ? "border-red-500" : ""}`}>
                           <SelectValue placeholder="Seleccione" />
                         </SelectTrigger>
                         <SelectContent className="max-h-60 overflow-auto">
@@ -387,8 +387,8 @@ export default function PreCatastralDialog({ open, onClose, editData, refreshTab
                       </Select>
                     )}
                   />
-                  {errors.lot_id && (
-                    <p className="text-xs text-red-500 mt-1">{errors.lot_id.message}</p>
+                  {errors.lotId && (
+                    <p className="text-xs text-red-500 mt-1">{errors.lotId.message}</p>
                   )}
                 </div>
               </div>
@@ -528,7 +528,7 @@ export default function PreCatastralDialog({ open, onClose, editData, refreshTab
                   <div>
                     <Label>DNI Técnico *</Label>
                     <div className="flex gap-2">
-                      <input type="hidden" {...register('technician_id')} />
+                      <input type="hidden" {...register('technicianId')} />
                       <Input
                         {...register("technician_dni")}
                         maxLength={8}

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FiChevronLeft, FiChevronRight, FiSearch, FiChevronDown, FiChevronUp } from "react-icons/fi";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RiResetRightFill } from "react-icons/ri";
 import { ActionButtons } from "@/components/custom/ActionButtons";
@@ -21,10 +21,9 @@ interface Props {
   onEdit: (data: ActData) => void;
   onDelete: (id: number) => void;
   fetchData: (params: { page: number; limit: number; file?: string; inscription?: string; meter?: string }) => Promise<ApiResponse>;
-  refreshTrigger: number;
 }
 
-export default function ActTable({ onEdit, onDelete, fetchData, refreshTrigger }: Props) {
+export default function ActTable({ onEdit, onDelete, fetchData }: Props) {
   const [data, setData] = useState<ActData[]>([]);
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -33,19 +32,27 @@ export default function ActTable({ onEdit, onDelete, fetchData, refreshTrigger }
   const [expandedRows, setExpandedRows] = useState<number[]>([]);
 
   // Estados para los filtros
-  const [searchByFile, setSearchByFile] = useState("");
-  const [searchByInscription, setSearchByInscription] = useState("");
-  const [searchByMeter, setSearchByMeter] = useState("");
+  const [searchValues, setSearchValues] = useState({
+    file: "",
+    inscription: "",
+    meter: ""
+  });
 
-  const loadData = async () => {
+  const [appliedFilters, setAppliedFilters] = useState({
+    file: "",
+    inscription: "",
+    meter: ""
+  });
+
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const result = await fetchData({
         page,
         limit: rowsPerPage,
-        file: searchByFile,
-        inscription: searchByInscription,
-        meter: searchByMeter,
+        ...(appliedFilters.file && { file: appliedFilters.file }),
+        ...(appliedFilters.inscription && { inscription: appliedFilters.inscription }),
+        ...(appliedFilters.meter && { meter: appliedFilters.meter })
       });
       setData(result.data);
       setTotalRows(result.total);
@@ -55,15 +62,21 @@ export default function ActTable({ onEdit, onDelete, fetchData, refreshTrigger }
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, rowsPerPage, appliedFilters, fetchData]);
 
   useEffect(() => {
     loadData();
-  }, [page, rowsPerPage, refreshTrigger]);
+  }, [loadData]);
+
+  // Manejadores de eventos
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setSearchValues(prev => ({ ...prev, [name]: value }));
+  };
 
   const handleSearch = () => {
-    setPage(1);
-    loadData();
+    setAppliedFilters(searchValues);
+    setPage(1); // Resetear a primera página al buscar
   };
 
   const handleRowsPerPageChange = (value: string) => {
@@ -81,12 +94,10 @@ export default function ActTable({ onEdit, onDelete, fetchData, refreshTrigger }
 
   const totalPages = Math.ceil(totalRows / rowsPerPage);
 
-  const handleReset = async () => {
-    setSearchByFile('');
-    setSearchByInscription('');
-    setSearchByMeter('')
+  const handleReset = () => {
+    setSearchValues({ file: "", inscription: "", meter: "" });
+    setAppliedFilters({ file: "", inscription: "", meter: "" });
     setPage(1);
-    await loadData();
   };
 
   return (
@@ -97,24 +108,24 @@ export default function ActTable({ onEdit, onDelete, fetchData, refreshTrigger }
         <div className="col-span-2 sm:col-span-1">
           <Input
             placeholder="Nro. Ficha"
-            value={searchByFile}
-            onChange={(e) => setSearchByFile(e.target.value)}
+            value={searchValues.file}
+            onChange={handleSearchChange}
             className="h-8 text-sm"
           />
         </div>
         <div className="col-span-2 sm:col-span-1">
           <Input
             placeholder="Inscripción"
-            value={searchByInscription}
-            onChange={(e) => setSearchByInscription(e.target.value)}
+            value={searchValues.inscription}
+            onChange={handleSearchChange}
             className="h-8 text-sm"
           />
         </div>
         <div className="col-span-2 sm:col-span-1">
           <Input
             placeholder="Medidor"
-            value={searchByMeter}
-            onChange={(e) => setSearchByMeter(e.target.value)}
+            value={searchValues.meter}
+            onChange={handleSearchChange}
             className="h-8 text-sm"
           />
         </div>
@@ -174,7 +185,7 @@ export default function ActTable({ onEdit, onDelete, fetchData, refreshTrigger }
               ) : data.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={9} className="text-center py-8">
-                    {searchByFile || searchByInscription
+                    {searchValues.file || searchValues.inscription || searchValues.meter
                       ? "No se encontraron resultados"
                       : "No hay datos disponibles"}
                   </TableCell>
@@ -248,49 +259,49 @@ export default function ActTable({ onEdit, onDelete, fetchData, refreshTrigger }
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                   {/* Creación */}
                                   <div className="space-y-1">
-                                  <div className="flex items-center gap-2">
-                                    <span className="bg-primary/10 text-primary px-2 py-1 rounded-full">Creación</span>
-                                    <span className="text-muted-foreground">
-                                    {item.histories.find(h => h.action === "CREATE")?.updated_at
-                                      ? new Date(item.histories.find(h => h.action === "CREATE")?.updated_at ?? "").toLocaleDateString('es-PE', {
-                                      day: '2-digit',
-                                      month: 'short',
-                                      year: 'numeric'
-                                      })
-                                      : "N/A"}
-                                    </span>
-                                  </div>
-                                  <p className="font-medium flex items-center gap-1">
-                                    <UserIcon className="h-4 w-4 text-muted-foreground" />
-                                    {item.histories.find(h => h.action === "CREATE")?.user?.names || "N/A"}
-                                  </p>
+                                    <div className="flex items-center gap-2">
+                                      <span className="bg-primary/10 text-primary px-2 py-1 rounded-full">Creación</span>
+                                      <span className="text-muted-foreground">
+                                        {item.histories.find(h => h.action === "CREATE")?.updated_at
+                                          ? new Date(item.histories.find(h => h.action === "CREATE")?.updated_at ?? "").toLocaleDateString('es-PE', {
+                                            day: '2-digit',
+                                            month: 'short',
+                                            year: 'numeric'
+                                          })
+                                          : "N/A"}
+                                      </span>
+                                    </div>
+                                    <p className="font-medium flex items-center gap-1">
+                                      <UserIcon className="h-4 w-4 text-muted-foreground" />
+                                      {item.histories.find(h => h.action === "CREATE")?.user?.names || "N/A"}
+                                    </p>
                                   </div>
                                   {/* Actualización (si existe) */}
                                   {item.histories.some(h => h.action === "UPDATE") && (
-                                  <div className="space-y-1">
-                                    <div className="flex items-center gap-2">
-                                    <span className="bg-blue-100 text-blue-600 px-2 py-1 rounded-full">Actualización</span>
-                                    <span className="text-muted-foreground">
-                                      {item.histories.find(h => h.action === "UPDATE")?.updated_at
-                                      ? new Date(item.histories.find(h => h.action === "UPDATE")?.updated_at ?? "").toLocaleDateString('es-PE', {
-                                        day: '2-digit',
-                                        month: 'short',
-                                        year: 'numeric'
-                                      })
-                                      : "N/A"}
-                                    </span>
+                                    <div className="space-y-1">
+                                      <div className="flex items-center gap-2">
+                                        <span className="bg-blue-100 text-blue-600 px-2 py-1 rounded-full">Actualización</span>
+                                        <span className="text-muted-foreground">
+                                          {item.histories.find(h => h.action === "UPDATE")?.updated_at
+                                            ? new Date(item.histories.find(h => h.action === "UPDATE")?.updated_at ?? "").toLocaleDateString('es-PE', {
+                                              day: '2-digit',
+                                              month: 'short',
+                                              year: 'numeric'
+                                            })
+                                            : "N/A"}
+                                        </span>
+                                      </div>
+                                      <p className="font-medium flex items-center gap-1">
+                                        <UserIcon className="h-4 w-4 text-muted-foreground" />
+                                        {item.histories.findLast(h => h.action === "UPDATE")?.user?.names || "N/A"}
+                                      </p>
+                                      {item.histories.findLast(h => h.action === "UPDATE")?.details && (
+                                        <div className="bg-muted/30 p-2 rounded mt-1">
+                                          <p className="text-muted-foreground font-medium">Detalles:</p>
+                                          <p className="whitespace-pre-wrap">{item.histories.findLast(h => h.action === "UPDATE")?.details}</p>
+                                        </div>
+                                      )}
                                     </div>
-                                    <p className="font-medium flex items-center gap-1">
-                                    <UserIcon className="h-4 w-4 text-muted-foreground" />
-                                    {item.histories.findLast(h => h.action === "UPDATE")?.user?.names || "N/A"}
-                                    </p>
-                                    {item.histories.findLast(h => h.action === "UPDATE")?.details && (
-                                    <div className="bg-muted/30 p-2 rounded mt-1">
-                                      <p className="text-muted-foreground font-medium">Detalles:</p>
-                                      <p className="whitespace-pre-wrap">{item.histories.findLast(h => h.action === "UPDATE")?.details}</p>
-                                    </div>
-                                    )}
-                                  </div>
                                   )}
                                 </div>
                               ) : (

@@ -12,26 +12,30 @@ import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
-// Enhanced schema validation
+// Schema validation mejorado con mensajes más descriptivos
 const boxSchema = z.object({
-    name_box: z.string().min(1, "El nombre de la caja es requerido"),
+    name: z.string().min(1, "El nombre de la caja es requerido").max(50, "El nombre no puede exceder los 50 caracteres"),
     meter_number: z.string().optional(),
     meter_reading: z.string().optional(),
 });
 
-type BoxForm = z.infer<typeof boxSchema> & { id?: number };
-
-type MeterItem = {
-    id: string;
-    meter_number: string;
-    meter_reading: string;
+type BoxForm = z.infer<typeof boxSchema> & {
+    id?: number;
+    meters?: MeterItem[];
 };
 
-const DEFAULT_VALUES: Partial<BoxForm> = {
-    name_box: "",
+type MeterItem = {
+    old_meter: string;
+    reading: string;
+};
+
+const DEFAULT_VALUES: BoxForm = {
+    name: "",
     meter_number: "",
-    meter_reading: ""
+    meter_reading: "",
+    meters: []
 };
 
 export default function LabeledDialog({
@@ -47,156 +51,163 @@ export default function LabeledDialog({
 }) {
     const {
         register,
-        handleSubmit: formHandleSubmit,
+        handleSubmit,
         watch,
         setValue,
         reset,
+        setError,
         clearErrors,
-        formState: { errors, isSubmitting }
+        formState: { errors, isValid }
     } = useForm<BoxForm>({
         resolver: zodResolver(boxSchema),
         mode: "onChange",
         defaultValues: DEFAULT_VALUES
     });
 
-    const [loading, setLoading] = useState({ save: false });
     const [meterItems, setMeterItems] = useState<MeterItem[]>([]);
-    const [nextId, setNextId] = useState(1);
+    const [isLoading, setIsLoading] = useState(false);
 
     const showAlert = (title: string, text: string, icon: 'success' | 'error' | 'warning' | 'info') => {
         Swal.fire({
             title,
             text,
             icon,
-            timer: 2000,
+            timer: 2500,
             showConfirmButton: false,
-            customClass: {
-                container: 'swal2-container-custom !z-[99999]',
-                popup: '!z-[99999]',
-            },
         });
     };
 
     const addMeterItem = () => {
-        const meterNumber = watch("meter_number");
-        const meterReading = watch("meter_reading");
+        const meterNumber = watch("meter_number")?.trim();
+        const meterReading = watch("meter_reading")?.trim();
 
-        if (!meterNumber || !meterReading) {
-            showAlert("Error", "Por favor complete ambos campos del medidor", "error");
+        // Limpiar errores previos
+        setValue("meter_number", meterNumber || "");
+        setValue("meter_reading", meterReading || "");
+
+        // Validar campos
+        let hasError = false;
+
+        if (!meterNumber) {
+            setError("meter_number", {
+                type: "required",
+                message: "El número de medidor es requerido"
+            });
+            hasError = true;
+        }
+
+        if (!meterReading) {
+            setError("meter_reading", {
+                type: "required",
+                message: "La lectura es requerida"
+            });
+            hasError = true;
+        }
+
+        if (hasError) return;
+
+        // Verificar duplicados
+        const isDuplicate = meterItems.some(item => item.old_meter === meterNumber);
+        if (isDuplicate) {
+            setError("meter_number", {
+                type: "duplicate",
+                message: "Este medidor ya existe en la lista"
+            });
             return;
         }
 
-        const newItem: MeterItem = {
-            id: `item-${nextId}`,
-            meter_number: meterNumber,
-            meter_reading: meterReading
-        };
+        // Agregar el medidor
+        setMeterItems(prev => [...prev, {
+            old_meter: meterNumber!,
+            reading: meterReading!
+        }]);
 
-        setMeterItems([...meterItems, newItem]);
-        setNextId(nextId + 1);
-
-        // Clear the input fields
+        // Limpiar campos
         setValue("meter_number", "");
         setValue("meter_reading", "");
+        clearErrors(["meter_number", "meter_reading"]);
     };
 
-    const removeMeterItem = (id: string) => {
-        setMeterItems(meterItems.filter(item => item.id !== id));
+    const removeMeterItem = (old_meter: string) => {
+        setMeterItems(prev => prev.filter(item => item.old_meter !== old_meter));
     };
 
     const handleSave = async (data: BoxForm) => {
-        setLoading({ save: true });
+        if (meterItems.length === 0) {
+            showAlert("Error", "Debe agregar al menos un medidor", "error");
+            return;
+        }
+
+        setIsLoading(true);
 
         try {
-            // 1. Verify user session
-            const sessionResponse = await fetch("/api/auth/session");
-            if (!sessionResponse.ok) {
-                throw new Error("Error al obtener la sesión del usuario");
-            }
-
-            const session = await sessionResponse.json();
-            const userId = Number(session.user?.id);
-
-            if (!userId) {
-                showAlert(
-                    "Error de autenticación",
-                    "No se pudo identificar al usuario. Por favor, inicia sesión nuevamente.",
-                    "error"
-                );
-                return;
-            }
-
-            // 2. Prepare payload with meter items
             const payload = {
-                name_box: data.name_box,
-                meters: meterItems,
-                [editData?.id ? "updated_by" : "created_by"]: userId,
+                name: data.name.trim(),
+                meters: meterItems
             };
 
-            // 3. Determine endpoint and method
-            const apiEndpoint = editData
-                ? `/api/box/updatebox?id=${editData.id}`
-                : "/api/box/newbox";
-            const method = editData ? "PUT" : "POST";
+            const endpoint = editData?.id
+                ? `/api/labeled/updatelabeled?id${editData.id}`
+                : '/api/labeled/newlabeled';
 
-            // 4. Send request
-            const response = await fetch(apiEndpoint, {
+            const method = editData?.id ? 'PUT' : 'POST';
+
+            const response = await fetch(endpoint, {
                 method,
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
             });
 
-            const result = await response.json();
-
-            if (result?.error) {
-                showAlert("Error", result.error || "Algo salió mal al guardar.", "error");
-                return;
-            } else {
-                showAlert(
-                    "¡Guardado exitosamente!",
-                    editData?.id
-                        ? "La caja fue actualizada correctamente."
-                        : "La caja fue creada correctamente.",
-                    "success"
-                );
-
-                refreshTable();
-                if (!editData?.id) {
-                    clearFields();
-                }
-                onClose();
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Error al procesar la solicitud");
             }
-        } catch (error: any) {
-            console.error("Error al guardar:", error);
+
             showAlert(
-                "Error",
-                error.message || "Ocurrió un error inesperado. Intenta nuevamente.",
-                "error"
+                "Éxito",
+                editData?.id ? "Caja actualizada correctamente" : "Caja creada correctamente",
+                "success"
             );
+
+            refreshTable();
+            onClose();
+            reset(DEFAULT_VALUES);
+            setMeterItems([]);
+        } catch (error: any) {
+            console.error("Error:", error);
+            showAlert("Error", error.message || "Ocurrió un error al guardar", "error");
         } finally {
-            setLoading({ save: false });
+            setIsLoading(false);
         }
     };
 
-    const clearFields = () => {
-        reset(DEFAULT_VALUES);
-        setMeterItems([]);
-        setNextId(1);
+    const fetchLabeledData = async (id: number) => {
+        try {
+            const response = await fetch(`/api/labeled/getlabeled?id=${id}`);
+            if (!response.ok) throw new Error("Error al obtener datos");
+
+            const result = await response.json();
+            if (result.data) {
+                reset({
+                    name: result.data.name,
+                    meter_number: "",
+                    meter_reading: ""
+                });
+                setMeterItems(result.data.meters || []);
+            }
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            showAlert("Error", "No se pudieron cargar los datos de la caja", "error");
+        }
     };
 
     useEffect(() => {
         if (open) {
             if (editData?.id) {
-                // If editing, load the existing data
-                reset({
-                    name_box: editData.name_box || ""
-                });
-                // Here you would also load any existing meter items for this box
-                // setMeterItems(editData.meters || []);
+                fetchLabeledData(editData.id);
             } else {
-                clearFields();
+                reset(DEFAULT_VALUES);
+                setMeterItems([]);
             }
         }
     }, [open, editData]);
@@ -204,13 +215,12 @@ export default function LabeledDialog({
     return (
         <Dialog
             open={open}
-            maxWidth="md"
+            maxWidth="sm"
             fullWidth
             onClose={onClose}
-            PaperProps={{
-                sx: {
-                    borderRadius: '12px',
-                    overflow: 'hidden'
+            slotProps={{
+                paper: {
+                    sx: { borderRadius: '12px', overflow: 'visible' }
                 }
             }}
         >
@@ -224,9 +234,7 @@ export default function LabeledDialog({
                         onClick={onClose}
                         sx={{
                             color: 'white',
-                            '&:hover': {
-                                backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                            }
+                            '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }
                         }}
                     >
                         <CloseIcon />
@@ -234,25 +242,26 @@ export default function LabeledDialog({
                 </div>
             </DialogTitle>
 
-            <form onSubmit={formHandleSubmit(handleSave)}>
+            <form onSubmit={handleSubmit(handleSave)}>
                 <DialogContent dividers className="bg-gray-50 dark:bg-gray-900 p-6 space-y-6">
-                    {/* Box Name Field */}
+                    {/* Nombre de la caja */}
                     <div className="space-y-2">
-                        <Label htmlFor="name_box" className="text-gray-700 dark:text-gray-300">
+                        <Label htmlFor="name" className="text-gray-700 dark:text-gray-300">
                             Nombre de la caja *
                         </Label>
                         <Input
-                            id="name_box"
-                            {...register("name_box")}
-                            className={`mt-1 ${errors.name_box ? "border-red-500 focus:ring-red-500" : "focus:ring-blue-500"}`}
+                            id="name"
+                            {...register("name")}
+                            className={`text-gray-900 dark:text-gray-100 ${errors.name ? "border-red-500 focus:ring-red-500" : "focus:ring-blue-500"}`}
                             placeholder="Ej: Caja Principal"
+                            disabled={isLoading}
                         />
-                        {errors.name_box && (
-                            <p className="text-sm text-red-500 mt-1">{errors.name_box.message}</p>
+                        {errors.name && (
+                            <p className="text-sm text-red-500 mt-2">{errors.name.message}</p>
                         )}
                     </div>
 
-                    {/* Meter Input Fields */}
+                    {/* Agregar medidores */}
                     <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                         <h3 className="font-medium text-gray-800 dark:text-gray-200 mb-4">
                             Agregar Medidores
@@ -261,26 +270,34 @@ export default function LabeledDialog({
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="space-y-1">
                                 <Label htmlFor="meter_number" className="text-gray-700 dark:text-gray-300">
-                                    N° de Medidor
+                                    N° de Medidor *
                                 </Label>
                                 <Input
                                     id="meter_number"
                                     {...register("meter_number")}
-                                    className="focus:ring-blue-500"
+                                    className={errors.meter_number ? "border-red-500 focus:ring-red-500" : "mt-2 text-gray-900 dark:text-gray-100 focus:ring-blue-500"}
                                     placeholder="Ej: 12345678"
+                                    disabled={isLoading}
                                 />
+                                {errors.meter_number && (
+                                    <p className="text-sm text-red-500 mt-1">{errors.meter_number.message}</p>
+                                )}
                             </div>
 
                             <div className="space-y-1">
                                 <Label htmlFor="meter_reading" className="text-gray-700 dark:text-gray-300">
-                                    Lectura
+                                    Lectura *
                                 </Label>
                                 <Input
                                     id="meter_reading"
                                     {...register("meter_reading")}
-                                    className="focus:ring-blue-500"
+                                    className={errors.meter_reading ? "border-red-500 focus:ring-red-500" : "mt-2 text-gray-900 dark:text-gray-100 focus:ring-blue-500"}
                                     placeholder="Ej: 12345"
+                                    disabled={isLoading}
                                 />
+                                {errors.meter_reading && (
+                                    <p className="text-sm text-red-500 mt-1">{errors.meter_reading.message}</p>
+                                )}
                             </div>
 
                             <div className="flex items-end">
@@ -288,6 +305,7 @@ export default function LabeledDialog({
                                     type="button"
                                     onClick={addMeterItem}
                                     className="w-full bg-green-600 hover:bg-green-700"
+                                    disabled={isLoading || !watch("meter_number") || !watch("meter_reading")}
                                 >
                                     <FiPlus className="mr-2" />
                                     Agregar
@@ -295,65 +313,66 @@ export default function LabeledDialog({
                             </div>
                         </div>
                     </div>
-
-                    {/* Meters Table */}
+                    {/* Tabla de medidores */}
                     {meterItems.length > 0 && (
                         <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-                            <Table className="min-w-full">
-                                <TableHeader className="bg-gray-100 dark:bg-gray-800">
-                                    <TableRow>
-                                        <TableHead className="text-gray-700 dark:text-gray-300">N° de Medidor</TableHead>
-                                        <TableHead className="text-gray-700 dark:text-gray-300">Lectura</TableHead>
-                                        <TableHead className="text-right text-gray-700 dark:text-gray-300">Acciones</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {meterItems.map((item) => (
-                                        <TableRow key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                                            <TableCell className="font-medium text-gray-900 dark:text-gray-100">
-                                                {item.meter_number}
-                                            </TableCell>
-                                            <TableCell>{item.meter_reading}</TableCell>
-                                            <TableCell className="text-right">
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => removeMeterItem(item.id)}
-                                                    className="text-red-600 hover:text-red-800 dark:hover:text-red-400"
-                                                >
-                                                    <FiTrash2 className="h-4 w-4" />
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
+                            <div className="overflow-x-auto">
+                                <ScrollArea className="h-[200px]">
+                                    <Table>
+                                        <TableHeader className="bg-gray-100 dark:bg-gray-800">
+                                            <TableRow>
+                                                <TableHead className="w-[150px]">N° de Medidor</TableHead>
+                                                <TableHead>Lectura</TableHead>
+                                                <TableHead className="w-[100px] text-right">Acciones</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {meterItems.map((item) => (
+                                                <TableRow key={item.old_meter}>
+                                                    <TableCell className="font-medium text-gray-900 dark:text-gray-100">{item.old_meter}</TableCell>
+                                                    <TableCell className="text-gray-900 dark:text-gray-100">{item.reading}</TableCell>
+                                                    <TableCell className="text-right">
+                                                        <Button
+                                                            type="button"
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => removeMeterItem(item.old_meter)}
+                                                            className="text-red-600 hover:text-red-800 dark:hover:text-red-400"
+                                                            disabled={isLoading}
+                                                        >
+                                                            <FiTrash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </ScrollArea>
+                            </div>
                         </div>
                     )}
                 </DialogContent>
 
-                <DialogActions className="sticky bottom-0 bg-gray-100 dark:bg-gray-800 px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end space-x-3">
+                <DialogActions className="bg-gray-100 dark:bg-gray-800 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
                     <Button
                         variant="outline"
                         onClick={onClose}
                         type="button"
-                        className="border-gray-300 hover:bg-gray-200 dark:border-gray-600 dark:text-white dark:hover:bg-gray-700"
+                        disabled={isLoading}
                     >
                         <FiX className="mr-2" />
                         Cancelar
                     </Button>
                     <Button
                         type="submit"
-                        className="bg-blue-600 hover:bg-blue-700 text-white"
-                        disabled={loading.save || isSubmitting}
+                        disabled={isLoading || !isValid || meterItems.length === 0}
                     >
-                        {loading.save || isSubmitting ? (
+                        {isLoading ? (
                             <FiLoader className="mr-2 animate-spin" />
                         ) : (
                             <FiSave className="mr-2" />
                         )}
-                        {loading.save || isSubmitting ? "Guardando..." : "Guardar"}
+                        {isLoading ? "Guardando..." : "Guardar"}
                     </Button>
                 </DialogActions>
             </form>
