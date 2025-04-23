@@ -18,6 +18,7 @@ import { FiX, FiSave, FiSearch, FiLoader } from "react-icons/fi";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import { LotData } from "@/types/types";
+import { useSession } from "next-auth/react";
 
 const precatastralSchema = z.object({
   file_number: z.string().min(1, "Número de ficha requerido").regex(/^\d+$/, "Solo se permiten números"),
@@ -38,7 +39,7 @@ const precatastralSchema = z.object({
   box_state: z.enum(["BUENO", "MALO"]),
   cover_material: z.string().min(1, "Material requerido"),
   keys: z.string().length(1, "Debe ser un solo dígito").regex(/^[0-2]$/, "Solo puede ser 0, 1 o 2"),
-  observations: z.enum(["SIN OBSERVACIONES", "MEDIDOR PROFUNDO", "RECHADO", "BRONCE"]),
+  observations: z.enum(["SIN_OBSERVACIONES", "MEDIDOR PROFUNDO", "RECHADO", "BRONCE"]),
   technicianId: z.number(),
   technician_dni: z.string().min(8, "DNI debe tener 8 dígitos").regex(/^\d+$/, "Solo números"),
   technician_name: z.string().min(1, "Nombre requerido")
@@ -66,7 +67,7 @@ const DEFAULT_VALUES: Partial<PrecatastralForm> = {
   technicianId: 0,
   technician_name: "",
   technician_dni: "",
-  observations: "SIN OBSERVACIONES",
+  observations: "SIN_OBSERVACIONES",
   reading: "",
 };
 
@@ -77,6 +78,7 @@ export default function PreCatastralDialog({ open, onClose, editData, refreshTab
     defaultValues: DEFAULT_VALUES
   });
 
+  const { data: session } = useSession();
   const [lots, setLots] = useState<LotData[]>([]);
   const [loading, setLoading] = useState({ inscription: false, technician: false, save: false });
 
@@ -272,15 +274,21 @@ export default function PreCatastralDialog({ open, onClose, editData, refreshTab
 
 
   useEffect(() => {
-    if (open) {
-      if (editData?.id) {
-        handleEdit(editData.id);
-      } else {
-        clearFields();
-      }
-      fetchLots();
+    if (!open) return;
+
+    if (editData?.id) {
+      handleEdit(editData.id);
+    } else {
+      clearFields();
     }
-  }, [open, editData]);
+    reset(DEFAULT_VALUES, { keepErrors: false });
+    fetchLots();
+    // Si la sesión contiene el lote del usuario, actualizamos el estado
+    if (session?.user?.lot?.id) {
+      setValue("lotId", session.user.lot.id.toString());
+    }
+  }, [open, editData?.id, session?.user?.lot?.id]); // Dependencias optimizadas
+
   return (
     <Dialog open={open} maxWidth="xl" fullWidth>
       <DialogTitle className="sticky top-0 z-10 bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6">

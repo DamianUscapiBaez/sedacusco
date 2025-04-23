@@ -23,6 +23,15 @@ export async function PUT(request: Request) {
                 { status: 400 }
             );
         }
+
+
+        // Si se crea un nuevo lote como ACTIVO, desactivar el anterior
+        if (status === "ACTIVE") {
+            await prisma.lot.updateMany({
+                where: { status: "ACTIVE" },
+                data: { status: "INACTIVE" },
+            });
+        }
         // 1. Actualizar datos básicos del tecnico
         const updatedLot = await prisma.lot.update({
             where: { id },

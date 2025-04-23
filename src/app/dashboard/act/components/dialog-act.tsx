@@ -13,6 +13,7 @@ import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
 import { LotData } from "@/types/types";
+import { useSession } from "next-auth/react";
 
 const baseActSchema = z.object({
     lotId: z.string().min(1, "Lote es requerido"),
@@ -43,7 +44,8 @@ const baseActSchema = z.object({
     verification_code: z.string().optional(), // Hacemos opcional inicialmente
     rotating_pointer: z.enum(["SI", "NO"]).optional(),
     meter_security_seal: z.enum(["SI", "NO"]).optional(),
-    reading_impossibility_viewer: z.enum(["SI", "NO"]).optional()
+    reading_impossibility_viewer: z.enum(["SI", "NO"]).optional(),
+    save_precatastral: z.enum(["SI", "NO"]).optional()
 });
 
 const DEFAULT_VALUES: Partial<ActForm> = {
@@ -54,7 +56,7 @@ const DEFAULT_VALUES: Partial<ActForm> = {
     technicianId: 0,
     technician_name: "",
     technician_dni: "",
-    lotId: "2",
+    lotId: "",
     rotating_pointer: "SI",
     meter_security_seal: "NO",
     reading_impossibility_viewer: "NO",
@@ -67,6 +69,7 @@ const DEFAULT_VALUES: Partial<ActForm> = {
     meterrenovationId: 0,
     meter_number: "",
     verification_code: "",
+    save_precatastral: "SI"
 };
 
 
@@ -115,6 +118,7 @@ export default function ActDialog({ open, onClose, editData, refreshTable }: { o
         defaultValues: DEFAULT_VALUES
     });
 
+    const { data: session } = useSession();
     const [lots, setLots] = useState<LotData[]>([]);
     const [loading, setLoading] = useState({ inscription: false, technician: false, save: false, meterrenovation: false });
     const [disabled, setDisabled] = useState({ meter: false, reading: false })
@@ -343,16 +347,27 @@ export default function ActDialog({ open, onClose, editData, refreshTable }: { o
     //     });
     // };
     useEffect(() => {
-        if (open) {
-            if (editData?.id) {
-                handleEdit(editData?.id);
-            } else {
-                clearFields();
-            }
-            reset({}, { keepErrors: false });
-            fetchLots();
+        if (!open) return; // Si el modal no está abierto, no ejecutamos nada
+
+        // Si estamos editando un lote, manejamos la edición, de lo contrario, limpiamos los campos
+        if (editData?.id) {
+            handleEdit(editData.id);
+        } else {
+            clearFields();
         }
-    }, [open, editData]);
+
+        // Reiniciamos el formulario y limpiamos los errores
+        reset(DEFAULT_VALUES, { keepErrors: false });
+
+        // Solo obtenemos los lotes si aún no se han cargado
+        fetchLots();
+
+        // Si la sesión contiene el lote del usuario, actualizamos el estado
+        if (session?.user?.lot?.id) {
+            setValue("lotId", session.user.lot.id.toString());
+        }
+
+    }, [open, editData?.id, session?.user?.lot?.id]); // Dependencias optimizadas
 
     return (
         <Dialog open={open} maxWidth="xl" fullWidth>
@@ -421,42 +436,46 @@ export default function ActDialog({ open, onClose, editData, refreshTable }: { o
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    <div className="space-y-1">
-                                        <Label htmlFor="file_date">Fecha</Label>
+                                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                                    {/* Fecha */}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="file_date" className="text-sm font-medium">Fecha</Label>
                                         <Input
                                             id="file_date"
                                             {...register("file_date")}
                                             type="date"
-                                            className={`mt-2 ${errors.file_date ? "border-red-500" : ""}`}
+                                            className={`${errors.file_date ? "border-red-500" : ""}`}
                                             max={new Date().toISOString().split('T')[0]}
                                             min={`${new Date().getFullYear()}-02-24`}
                                         />
                                         {errors.file_date && (
-                                            <p className="text-xs text-red-500">{errors.file_date.message}</p>
+                                            <p className="text-xs text-red-500 mt-1">{errors.file_date.message}</p>
                                         )}
                                     </div>
 
-                                    <div className="space-y-1">
-                                        <Label htmlFor="file_time">Hora</Label>
+                                    {/* Hora */}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="file_time" className="text-sm font-medium">Hora</Label>
                                         <Input
                                             id="file_time"
                                             {...register("file_time")}
                                             type="time"
-                                            className={`mt-2 ${errors.file_time ? "border-red-500" : ""}`}
+                                            className={`${errors.file_time ? "border-red-500" : ""}`}
                                         />
                                         {errors.file_time && (
-                                            <p className="text-xs text-red-500">{errors.file_time.message}</p>
+                                            <p className="text-xs text-red-500 mt-2">{errors.file_time.message}</p>
                                         )}
                                     </div>
-                                    <div className="space-y-1">
-                                        <Label htmlFor="lotId">Lote</Label>
+
+                                    {/* Lote */}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="lotId" className="text-sm font-medium">Lote</Label>
                                         <Controller
                                             name="lotId"
                                             control={control}
                                             render={({ field }) => (
                                                 <Select
-                                                    value={field.value} // Set default value to "2" if field.value is undefined
+                                                    value={field.value}
                                                     onValueChange={(value) => {
                                                         field.onChange(value);
                                                         setValue("lotId", value);
@@ -465,7 +484,7 @@ export default function ActDialog({ open, onClose, editData, refreshTable }: { o
                                                     <SelectTrigger className={`w-full mt-2 ${errors.lotId ? "border-red-500" : ""}`}>
                                                         <SelectValue placeholder="Seleccione" />
                                                     </SelectTrigger>
-                                                    <SelectContent className="max-h-60 overflow-auto">
+                                                    <SelectContent className="overflow-auto">
                                                         {lots.map((item) => (
                                                             <SelectItem key={item.id} value={item.id.toString()} className="capitalize">
                                                                 {item.name}
@@ -478,6 +497,29 @@ export default function ActDialog({ open, onClose, editData, refreshTable }: { o
                                         {errors.lotId && (
                                             <p className="text-xs text-red-500 mt-1">{errors.lotId.message}</p>
                                         )}
+                                    </div>
+
+                                    {/* Guardar Pre Catastral */}
+                                    <div className="space-y-2">
+                                        <Label className="text-sm font-medium">Guardar Pre Catastral</Label>
+                                        <div className="flex">
+                                            <Button
+                                                type="button"
+                                                variant={watch("save_precatastral") === "SI" ? "default" : "outline"}
+                                                onClick={() => setValue("save_precatastral", "SI")}
+                                                className="rounded-r-none w-1/2 border-r-0"
+                                            >
+                                                Sí
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant={watch("save_precatastral") === "NO" ? "default" : "outline"}
+                                                onClick={() => setValue("save_precatastral", "NO")}
+                                                className="rounded-l-none w-1/2"
+                                            >
+                                                No
+                                            </Button>
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

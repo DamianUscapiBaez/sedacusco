@@ -2,11 +2,13 @@ import { NextAuthOptions, User as NextAuthUser } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/libs/db";
 import bcrypt from "bcrypt";
+import { LotData } from "@/types/types";
 
 interface CustomUser extends NextAuthUser {
     id: string;
     username: string;
     permissions: string[];
+    lot: LotData;
 }
 
 declare module "next-auth" {
@@ -14,6 +16,7 @@ declare module "next-auth" {
         user: {
             id: string;
             username: string;
+            lot: LotData;
             permissions: string[];
         };
         expires: string;
@@ -25,6 +28,7 @@ declare module "next-auth/jwt" {
         id: string;
         username: string;
         permissions: string[];
+        lot: LotData;
         exp: number;
     }
 }
@@ -41,6 +45,16 @@ export const authOptions: NextAuthOptions = {
                 if (!credentials?.username || !credentials?.password) {
                     throw new Error("Usuario y contraseña son obligatorios");
                 }
+
+                const lot = await prisma.lot.findFirst({ where: { status: "ACTIVE" } }) ?? null;
+
+                const formattedLot = lot && (({ id, name, start_date, end_date }) => ({
+                    id,
+                    name,
+                    start_date: start_date.toISOString().split("T")[0],
+                    end_date: end_date.toISOString().split("T")[0],
+                }))(lot);
+
 
                 const user = await prisma.user.findUnique({
                     where: { username: credentials.username },
@@ -74,9 +88,10 @@ export const authOptions: NextAuthOptions = {
                     (user.role?.permissions || []).map((rp: { Permission: { key: string } }) => rp.Permission.key)
                 ));
 
-                return { 
-                    id: String(user.id), 
+                return {
+                    id: String(user.id),
                     username: user.username,
+                    lot: formattedLot,
                     permissions
                 };
             },
@@ -96,6 +111,7 @@ export const authOptions: NextAuthOptions = {
                 token.id = user.id;
                 token.username = (user as CustomUser).username;
                 token.permissions = (user as CustomUser).permissions;
+                token.lot = (user as CustomUser).lot;
                 token.exp = Math.floor(Date.now() / 1000) + 8 * 60 * 60;
             }
             return token;
@@ -104,11 +120,12 @@ export const authOptions: NextAuthOptions = {
             session.user = {
                 id: token.id,
                 username: token.username,
-                permissions: token.permissions
+                permissions: token.permissions,
+                lot: token.lot
             };
             session.expires = new Date(token.exp * 1000).toISOString();
             return session;
-        },
+        }
     },
     secret: process.env.NEXTAUTH_SECRET
 };

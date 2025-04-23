@@ -108,7 +108,7 @@ async function main() {
     where: {
       OR: [
         // Permisos para Actas
-        { key: { in: ['acts.magane', 'acts.read', 'acts.create'] } },
+        { key: { in: ['acts.manage', 'acts.read', 'acts.create'] } },
         // Permisos para Precatastrales
         { key: { in: ['precatastral.manage', 'precatastral.read', 'precatastral.create'] } },
         // Permiso básico para el dashboard

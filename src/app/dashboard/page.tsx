@@ -7,6 +7,7 @@ import { LotData } from '@/types/types';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
+import { useSession } from 'next-auth/react';
 
 type DocumentData = {
   _count: {
@@ -17,16 +18,23 @@ type DocumentData = {
 };
 
 export default function DashboardPage() {
+  const { data: session } = useSession();
   const [lots, setLots] = useState<LotData[]>([]);
   const [totals, setTotals] = useState({
     installed: 0,
     preInstalled: 0
   });
-  const [selectedLot, setSelectedLot] = useState("2");
+  const [selectedLot, setSelectedLot] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("hoy");
   const [isLoading, setIsLoading] = useState(false);
   const [chartData, setChartData] = useState<DocumentData[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (session?.user?.lot?.id) {
+      setSelectedLot(session.user.lot.id.toString());
+    }
+  }, [session]);
 
   // Función genérica para fetch con manejo de errores
   const fetchData = useCallback(async <T,>(url: string): Promise<T | null> => {
@@ -51,7 +59,7 @@ export default function DashboardPage() {
   const fetchLots = useCallback(async () => {
     const data = await fetchData<{ data: LotData[] }>("/api/lot/listlots");
     if (data) setLots(data.data);
-  }, [fetchData]);
+  }, [fetchData, selectedLot]);
 
   // Obtener totales
   const fetchTotals = useCallback(async (lotId: string) => {
@@ -82,9 +90,12 @@ export default function DashboardPage() {
   }, [fetchLots]);
 
   useEffect(() => {
-    fetchTotals(selectedLot);
-    fetchChartData();
+    if (selectedLot) {
+      fetchTotals(selectedLot);
+      fetchChartData();
+    }
   }, [fetchTotals, fetchChartData, selectedLot, selectedFilter]);
+
 
   // Manejadores de cambio
   const handleLotChange = useCallback((value: string) => {

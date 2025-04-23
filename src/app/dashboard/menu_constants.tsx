@@ -80,7 +80,7 @@ export const FULL_MENU: SideNavItemGroup[] = [
         menuList: [
             {
                 title: 'Reporte',
-                path: '/dashboard/precatastral',
+                path: '/dashboard/report',
                 icon: <TbReportAnalytics size={20} />,
                 permission: 'reports.generate' // Permiso requerido
             }

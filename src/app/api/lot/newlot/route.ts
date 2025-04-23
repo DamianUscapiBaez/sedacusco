@@ -4,7 +4,6 @@ import { prisma } from "@/libs/db";
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-
         const {
             name,
             start_date,
@@ -12,7 +11,7 @@ export async function POST(request: Request) {
             status
         } = body;
 
-        // Verificar si el tecnico ya existe
+        // Verificar si el nombre del lote ya existe
         const existingName = await prisma.lot.findFirst({
             where: { name: name.trim() },
         });
@@ -23,8 +22,16 @@ export async function POST(request: Request) {
                 { status: 400 }
             );
         }
-        
-        // 1. Crear el tecnico
+
+        // Si se crea un nuevo lote como ACTIVO, desactivar el anterior
+        if (status === "ACTIVE") {
+            await prisma.lot.updateMany({
+                where: { status: "ACTIVE" },
+                data: { status: "INACTIVE" },
+            });
+        }
+
+        // Crear el nuevo lote
         const newLot = await prisma.lot.create({
             data: {
                 name,
@@ -33,7 +40,9 @@ export async function POST(request: Request) {
                 status
             },
         });
+
         return NextResponse.json(newLot, { status: 201 });
+
     } catch (error) {
         console.error("Error en la API:", error);
         return NextResponse.json(
