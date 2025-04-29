@@ -347,21 +347,14 @@ export default function ActDialog({ open, onClose, editData, refreshTable }: { o
     //     });
     // };
     useEffect(() => {
-        if (!open) return; // Si el modal no está abierto, no ejecutamos nada
-
         // Si estamos editando un lote, manejamos la edición, de lo contrario, limpiamos los campos
         if (editData?.id) {
             handleEdit(editData.id);
         } else {
             clearFields();
         }
-
-        // Reiniciamos el formulario y limpiamos los errores
-        reset(DEFAULT_VALUES, { keepErrors: false });
-
         // Solo obtenemos los lotes si aún no se han cargado
         fetchLots();
-
         // Si la sesión contiene el lote del usuario, actualizamos el estado
         if (session?.user?.lot?.id) {
             setValue("lotId", session.user.lot.id.toString());

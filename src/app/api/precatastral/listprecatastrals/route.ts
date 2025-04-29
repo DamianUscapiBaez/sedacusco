@@ -4,6 +4,7 @@ interface PreCatastralWhereInput {
   file_number?: {
     contains: string;
   };
+  deleted_at?: null;
   customer?: {
     inscription?: {
       contains: string;
@@ -24,7 +25,9 @@ export async function GET(request: Request) {
     const inscription = searchParams.get("inscription");
 
     // Construir condiciones WHERE de manera segura
-    const where: PreCatastralWhereInput = {};
+    const where: PreCatastralWhereInput = {
+      deleted_at: null,
+    };
 
     if (file) {
       where.file_number = { contains: file }; // Corregido: acceso directo a file_number
@@ -40,7 +43,7 @@ export async function GET(request: Request) {
         where,
         skip,
         take: limit,
-        include: {
+        select: {
           customer: true,
           technician: true,
           histories: {
@@ -59,6 +62,9 @@ export async function GET(request: Request) {
               updated_at: 'desc'
             }
           }
+        },
+        orderBy: {
+          id: 'desc'
         }
       }),
       prisma.preCatastral.count({ where }),

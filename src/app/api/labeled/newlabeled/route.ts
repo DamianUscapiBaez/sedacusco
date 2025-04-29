@@ -10,7 +10,7 @@ interface MeterType {
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { name, meters } = body;
+        const { name, lotId, meters } = body;
 
         // Validación mejorada
         if (!body.name?.trim()) {
@@ -61,7 +61,8 @@ export async function POST(request: Request) {
                         old_meter: meter.old_meter.trim(),
                         reading: meter.reading.trim()
                     }))
-                }
+                },
+                lot: { connect: { id: Number(lotId) } }
             },
             include: {
                 meters: true

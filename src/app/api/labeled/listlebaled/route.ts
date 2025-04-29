@@ -40,6 +40,7 @@ export async function GET(request: Request) {
         take: limit,
         orderBy: { id: 'desc' },
         include: {
+          lot: true,
           meters: {
             select: {
               id: true,

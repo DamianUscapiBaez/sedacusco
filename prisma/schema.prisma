@@ -21,10 +21,11 @@ model User {
   password             String
   status               String
   roleId               Int // Campo para la relación con Rol
-  role                 Role                  @relation(fields: [roleId], references: [id]) // Relación directa
+  deleted_at           DateTime?
   // Relaciones
   updatedActHistories  ActHistory[]
   updatedPreCatastrals PreCatastralHistory[]
+  role                 Role                  @relation(fields: [roleId], references: [id]) // Relación directa
 }
 
 // Modelo de Roles
@@ -32,7 +33,9 @@ model Role {
   id          Int              @id @default(autoincrement())
   name        String           @unique
   description String?
-  users       User[] // Relación inversa
+  deleted_at  DateTime?
+  // Relaciones
+  users       User[]
   permissions RolePermission[]
 }
 
@@ -42,6 +45,7 @@ model Permission {
   key            String           @unique
   name           String
   description    String
+  // Relaciones
   RolePermission RolePermission[]
 }
 
@@ -50,6 +54,7 @@ model RolePermission {
   id           Int        @id @default(autoincrement())
   roleId       Int
   permissionId Int
+  // Relaciones
   Role         Role       @relation(fields: [roleId], references: [id])
   Permission   Permission @relation(fields: [permissionId], references: [id])
 }
@@ -62,6 +67,7 @@ model Customer {
   customer_name String
   old_meter     String
   observation   String
+  // Relaciones
   acts          Act[]
   preCatastrals PreCatastral[]
 }
@@ -71,6 +77,8 @@ model Technician {
   id            Int            @id @default(autoincrement())
   dni           String
   name          String
+  deleted_at    DateTime?
+  // Relaciones
   acts          Act[]
   preCatastrals PreCatastral[]
 }
@@ -80,6 +88,7 @@ model MeterRenovation {
   id                Int    @id @default(autoincrement())
   meter_number      String
   verification_code String
+  // Relaciones
   acts              Act[]
 }
 
@@ -89,15 +98,22 @@ model Lot {
   start_date    DateTime       @db.Date
   end_date      DateTime       @db.Date
   status        String
+  deleted_at    DateTime?
+  // Relaciones
   acts          Act[]
+  Labeled       Labeled[]
   PreCatastrals PreCatastral[]
 }
 
 model Labeled {
-  id        Int            @id @default(autoincrement())
-  name      String         @unique
-  meters    MeterLabeled[]
-  createdAt DateTime       @default(now())
+  id         Int            @id @default(autoincrement())
+  name       String         @unique
+  lotId      Int
+  deleted_at DateTime?
+  createdAt  DateTime       @default(now())
+  // Relaciones
+  meters     MeterLabeled[]
+  lot        Lot            @relation(fields: [lotId], references: [id])
 }
 
 model MeterLabeled {
@@ -105,6 +121,7 @@ model MeterLabeled {
   old_meter String
   reading   String
   labeledId Int
+  // Relaciones
   labeled   Labeled @relation(fields: [labeledId], references: [id])
 }
 
@@ -123,12 +140,13 @@ model Act {
   reading_impossibility_viewer String
   customerId                   Int
   technicianId                 Int
+  deleted_at                   DateTime?
   // Relaciones
+  histories                    ActHistory[]
   lot                          Lot              @relation(fields: [lotId], references: [id])
   customer                     Customer         @relation(fields: [customerId], references: [id])
-  meter                        MeterRenovation? @relation(fields: [meterrenovationId], references: [id])
   technician                   Technician       @relation(fields: [technicianId], references: [id])
-  histories                    ActHistory[]
+  meter                        MeterRenovation? @relation(fields: [meterrenovationId], references: [id])
 }
 
 // Modelo de Historial de Actas
@@ -138,16 +156,16 @@ model ActHistory {
   action     String // CREATE, UPDATE, DELETE
   details    String?
   updated_by Int
+  labeledId  Int?
   updated_at DateTime @default(now())
-
-  act       Act  @relation(fields: [actId], references: [id])
-  user      User @relation(fields: [updated_by], references: [id])
-  labeledId Int?
+  // Relaciones
+  act        Act      @relation(fields: [actId], references: [id])
+  user       User     @relation(fields: [updated_by], references: [id])
 }
 
 // Modelo de Precatastrales
 model PreCatastral {
-  id                Int     @id @default(autoincrement())
+  id                Int                   @id @default(autoincrement())
   lotId             Int
   file_number       String
   property          String
@@ -165,23 +183,23 @@ model PreCatastral {
   customerId        Int
   technicianId      Int
   is_located        String
-
+  deleted_at        DateTime?
   // Relaciones
-  lot        Lot                   @relation(fields: [lotId], references: [id])
-  customer   Customer              @relation(fields: [customerId], references: [id])
-  technician Technician            @relation(fields: [technicianId], references: [id])
-  histories  PreCatastralHistory[]
+  histories         PreCatastralHistory[]
+  lot               Lot                   @relation(fields: [lotId], references: [id])
+  customer          Customer              @relation(fields: [customerId], references: [id])
+  technician        Technician            @relation(fields: [technicianId], references: [id])
 }
 
 // Modelo de Historial de Precatastrales
 model PreCatastralHistory {
-  id             Int      @id @default(autoincrement())
+  id             Int          @id @default(autoincrement())
   preCatastralId Int
   action         String // CREATE, UPDATE, DELETE
   details        String?
   updated_by     Int
-  updated_at     DateTime @default(now())
-
-  preCatastral PreCatastral @relation(fields: [preCatastralId], references: [id])
-  user         User         @relation(fields: [updated_by], references: [id])
+  updated_at     DateTime     @default(now())
+  // Relaciones
+  user           User         @relation(fields: [updated_by], references: [id])
+  preCatastral   PreCatastral @relation(fields: [preCatastralId], references: [id])
 }

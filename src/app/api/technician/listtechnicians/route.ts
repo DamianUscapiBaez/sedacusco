@@ -13,11 +13,22 @@ export async function GET(request: Request) {
     // Consulta eficiente con transaction
     const [data, total] = await prisma.$transaction([
       prisma.technician.findMany({
+        where: {
+          deleted_at: null
+        },
         skip,
         take: limit,
+        include: {
+          _count: {
+            select: {
+              acts: true,
+              preCatastrals: true
+            }
+          }
+        },
         orderBy: { id: 'desc' }
       }),
-      prisma.technician.count(),
+      prisma.technician.count({ where: { deleted_at: null } }),
     ]);
 
     return NextResponse.json({ data, total });

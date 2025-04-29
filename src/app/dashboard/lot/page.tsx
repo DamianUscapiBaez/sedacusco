@@ -111,8 +111,10 @@ export default function LotPage() {
                     popup: '!z-[99999]',
                 },
             });
+
             handleClose();
             refreshTable();
+            
         } catch (error) {
             console.error("❌ Error al guardar:", error);
             Swal.fire({

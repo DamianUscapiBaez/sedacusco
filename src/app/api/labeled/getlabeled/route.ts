@@ -23,6 +23,7 @@ export async function GET(request: Request) {
         const labeled = await prisma.labeled.findUnique({
             where: { id: numericId },
             include: {
+                lot: true,
                 meters: {
                     select: {
                         id: true,
@@ -44,16 +45,7 @@ export async function GET(request: Request) {
         }
 
         // Estructura de respuesta consistente
-        return NextResponse.json({
-            data: {
-                id: labeled.id,
-                name: labeled.name,
-                meters: labeled.meters,
-                // totalMeters: labeled.meters.length
-            }
-        }, {
-            status: 200
-        });
+        return NextResponse.json({ data: labeled }, { status: 200 });
 
     } catch (error) {
         console.error("Error en la API:", error);

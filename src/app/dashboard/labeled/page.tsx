@@ -58,7 +58,7 @@ export default function LabeledPage() {
                   className="bg-emerald-500 hover:bg-emerald-600 text-white w-full md:w-auto"
                   onClick={() => handleOpenEdit()}
                 >
-                  <HiDocumentAdd className="mr-2 h-4 w-4" /> Nuevo Rotulado
+                  <HiDocumentAdd className="mr-2 h-4 w-4" /> Nueva caja
                 </Button>
               </div>
             </PermissionWrapper>

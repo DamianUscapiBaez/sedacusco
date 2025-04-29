@@ -13,6 +13,7 @@ export async function GET(request: Request) {
       where: {
         lotId: lot,
         observations: "SIN_OBSERVACIONES",
+        deleted_at: null
       },
     });
 

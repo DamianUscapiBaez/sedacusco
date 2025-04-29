@@ -26,10 +26,18 @@ export interface LotData {
   end_date: string;
   status: string;
 }
+export interface MeterType {
+  id: number;
+  old_meter: string;
+  reading: string;
+  labeled_id?: number;
+}
 export interface LabeledData {
   id: number;
   name: string;
   createdAt: string;
+  lot: LotData;
+  meters: MeterType[];
 }
 export interface UserData {
   id: number;

@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { RiResetRightFill } from "react-icons/ri";
 import { ActionButtons } from "@/components/custom/ActionButtons";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { LabeledData } from "@/types/types";
 
 interface ApiResponse {
   data: LabeledData[];
@@ -22,19 +23,7 @@ interface FetchDataParams {
   meter?: string;
 }
 
-interface LabeledData {
-  id: number;
-  name: string;
-  meters?: MeterType[];
-  createdAt: string;
-}
 
-interface MeterType {
-  id: number;
-  old_meter: string;
-  reading: string;
-  labeled_id?: number;
-}
 
 interface LabeledTableProps {
   onEdit: (data: LabeledData) => void;
@@ -120,7 +109,7 @@ export default function LabeledTable({ onEdit, onDelete, fetchData }: LabeledTab
 
   // Cálculos
   const totalPages = Math.ceil(totalRows / rowsPerPage);
-  
+
   return (
     <div className="space-y-4">
       {/* Filtros */}
@@ -172,6 +161,7 @@ export default function LabeledTable({ onEdit, onDelete, fetchData }: LabeledTab
                 <TableHead className="w-12">ID</TableHead>
                 <TableHead>Nombre Caja</TableHead>
                 <TableHead>Cant. Medidores</TableHead>
+                <TableHead>Lote</TableHead>
                 <TableHead>Fecha Creación</TableHead>
                 <TableHead className="text-right w-24">Acciones</TableHead>
               </TableRow>
@@ -216,6 +206,7 @@ export default function LabeledTable({ onEdit, onDelete, fetchData }: LabeledTab
                       <TableCell className="py-1 text-xs">{item.id}</TableCell>
                       <TableCell className="py-1 text-xs">{item.name}</TableCell>
                       <TableCell className="py-1 text-xs">{item.meters?.length || 0}</TableCell>
+                      <TableCell className="py-1 text-xs">{item.lot.name}</TableCell>
                       <TableCell className="py-1 text-xs">{item.createdAt}</TableCell>
                       <TableCell className="py-1 flex justify-end gap-1">
                         <ActionButtons
