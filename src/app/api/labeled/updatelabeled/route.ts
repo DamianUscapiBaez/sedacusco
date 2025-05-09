@@ -19,7 +19,7 @@ export async function PUT(request: Request) {
         }
 
         const body = await request.json();
-        const { name, meters } = body;
+        const { name, meters, lotId } = body;
 
         // Verificar si el nombre ya existe (excluyendo el registro actual)
         const existingBox = await prisma.labeled.findFirst({
@@ -41,14 +41,17 @@ export async function PUT(request: Request) {
             // 1. Actualizar datos básicos de la caja
             const caja = await prisma.labeled.update({
                 where: { id },
-                data: { name }
+                data: {
+                    name,
+                    lot: { connect: { id: Number(lotId) } },
+                },
             });
 
             // 2. Eliminar y recrear los medidores asociados
             await prisma.meterLabeled.deleteMany({
                 where: { labeledId: id }
             });
-            
+
             await prisma.meterLabeled.createMany({
                 data: meters.map((meter: MeterType) => ({
                     labeledId: caja.id,

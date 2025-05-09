@@ -9,7 +9,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { RiResetRightFill } from "react-icons/ri";
 import { ActionButtons } from "@/components/custom/ActionButtons";
 import { ActData } from "@/types/types";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { UserIcon } from "lucide-react";
 
 interface ApiResponse {
@@ -155,115 +154,134 @@ export default function ActTable({ onEdit, onDelete, fetchData }: Props) {
         </Button>
       </div>
       {/* Tabla con scroll horizontal y cabecera fija */}
-      <div className="rounded-md border relative">
-        <ScrollArea className="h-[calc(100vh-370px)] w-full">
-          <Table className="table-fixed w-full">
-            <TableHeader className="sticky top-0 bg-background z-10">
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="w-8"></TableHead>
-                <TableHead className="w-20">N° Ficha</TableHead>
-                <TableHead className="w-24">Inscripción</TableHead>
-                <TableHead className="w-24">Fecha</TableHead>
-                <TableHead className="min-w-32">Usuario</TableHead>
-                <TableHead className="w-24">Nro Medidor</TableHead>
-                <TableHead className="w-32">Certificación</TableHead>
-                <TableHead className="min-w-32">Técnico</TableHead>
-                <TableHead className="w-32 text-right">Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                Array.from({ length: 5 }).map((_, index) => (
-                  <TableRow key={`skeleton-${index}`}>
-                    {Array.from({ length: 9 }).map((_, cellIdx) => (
-                      <TableCell key={`skeleton-cell-${index}-${cellIdx}`}>
-                        <Skeleton className="h-4 w-full" />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : data.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={9} className="text-center py-8">
-                    {searchValues.file || searchValues.inscription || searchValues.meter
-                      ? "No se encontraron resultados"
-                      : "No hay datos disponibles"}
-                  </TableCell>
+      <div className="w-full overflow-x-auto">
+        <Table className="min-w-[600px] w-full text-sm">
+          <TableHeader className="sticky top-0 bg-background z-10 shadow-md">
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="w-8 px-2 py-2 text-xs whitespace-nowrap"></TableHead>
+              <TableHead className="px-2 py-2 text-xs whitespace-nowrap">N° Ficha</TableHead>
+              <TableHead className="px-2 py-2 text-xs whitespace-nowrap">Inscripción</TableHead>
+              <TableHead className="px-2 py-2 text-xs whitespace-nowrap">Fecha</TableHead>
+              <TableHead className="px-2 py-2 text-xs whitespace-nowrap">Usuario</TableHead>
+              <TableHead className="px-2 py-2 text-xs whitespace-nowrap">Nro Medidor</TableHead>
+              <TableHead className="px-2 py-2 text-xs whitespace-nowrap">Certificación</TableHead>
+              <TableHead className="px-2 py-2 text-xs whitespace-nowrap">Técnico</TableHead>
+              <TableHead className="px-2 py-2 text-xs text-right whitespace-nowrap">Acciones</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              Array.from({ length: 5 }).map((_, index) => (
+                <TableRow key={`skeleton-${index}`}>
+                  {Array.from({ length: 9 }).map((_, cellIdx) => (
+                    <TableCell key={`skeleton-cell-${index}-${cellIdx}`}>
+                      <Skeleton className="h-4 w-full" />
+                    </TableCell>
+                  ))}
                 </TableRow>
-              ) : (
-                data.map((item) => (
-                  <React.Fragment key={item.id}>
-                    <TableRow className="hover:bg-muted/50">
-                      <TableCell className="p-0">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          onClick={() => toggleRowExpand(item.id)}
-                        >
-                          {expandedRows.includes(item.id) ?
-                            <FiChevronUp className="h-4 w-4" /> :
-                            <FiChevronDown className="h-4 w-4" />
-                          }
-                        </Button>
-                      </TableCell>
-                      <TableCell className="py-1 truncate text-xs">{item.file_number}</TableCell>
-                      <TableCell className="py-1 truncate text-xs">{item.customer.inscription}</TableCell>
-                      <TableCell className="py-1 truncate text-xs">{item.file_date}</TableCell>
-                      <TableCell className="py-1 truncate text-xs">{item.customer.customer_name}</TableCell>
-                      <TableCell className="py-1 truncate text-xs">{item.meter.meter_number}</TableCell>
-                      <TableCell className="py-1 truncate text-xs">{item.meter.verification_code}</TableCell>
-                      <TableCell className="py-1 truncate text-xs">{item.technician.name}</TableCell>
-                      <TableCell className="py-1 flex justify-end gap-1">
-                        <ActionButtons
-                          onEdit={() => onEdit(item)}
-                          onDelete={item.id ? () => onDelete(item.id) : undefined}
-                          editPermission="acts.update"
-                          deletePermission="acts.delete"
-                        />
-                      </TableCell>
-                    </TableRow>
-                    {expandedRows.includes(item.id) && (
-                      <TableRow className="bg-muted/10 hover:bg-muted/20 transition-colors">
-                        <TableCell colSpan={9} className="p-0">
-                          <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 text-xs">
-                            {/* Información del Cliente */}
-                            <div className="space-y-2 ">
-                              <h4 className="font-medium text-xs mb-3 pb-2 border-b border-muted-foreground/20">Información del Cliente</h4>
-                              <div className="grid grid-cols-5 gap-1">
-                                <span className="text-muted-foreground col-span-2">Dirección:</span>
-                                <span className="font-medium col-span-3 whitespace-pre-wrap break-words" title={item.customer.address}>
-                                  {item.customer.address}
-                                </span>
-                                <span className="text-muted-foreground col-span-2">Medidor Antiguo:</span>
-                                <span className="font-medium col-span-3">{item.customer.old_meter}</span>
-                                <span className="text-muted-foreground col-span-2">Lectura:</span>
-                                <span className="font-medium col-span-3">{item.reading}</span>
-                              </div>
+              ))
+            ) : data.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={9} className="text-center py-8">
+                  {searchValues.file || searchValues.inscription || searchValues.meter
+                    ? "No se encontraron resultados"
+                    : "No hay datos disponibles"}
+                </TableCell>
+              </TableRow>
+            ) : (
+              data.map((item) => (
+                <React.Fragment key={item.id}>
+                  <TableRow className="hover:bg-muted/50">
+                    <TableCell className="p-0">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={() => toggleRowExpand(item.id)}
+                      >
+                        {expandedRows.includes(item.id) ?
+                          <FiChevronUp className="h-4 w-4" /> :
+                          <FiChevronDown className="h-4 w-4" />
+                        }
+                      </Button>
+                    </TableCell>
+                    <TableCell className="py-1 truncate text-xs">{item.file_number}</TableCell>
+                    <TableCell className="py-1 truncate text-xs">{item.customer.inscription}</TableCell>
+                    <TableCell className="py-1 truncate text-xs">{item.file_date}</TableCell>
+                    <TableCell className="py-1 truncate text-xs">{item.customer.customer_name}</TableCell>
+                    <TableCell className="py-1 truncate text-xs">{item.meter.meter_number}</TableCell>
+                    <TableCell className="py-1 truncate text-xs">{item.meter.verification_code}</TableCell>
+                    <TableCell className="py-1 truncate text-xs">{item.technician.name}</TableCell>
+                    <TableCell className="py-1 flex justify-end gap-1">
+                      <ActionButtons
+                        onEdit={() => onEdit(item)}
+                        onDelete={item.id ? () => onDelete(item.id) : undefined}
+                        editPermission="acts.update"
+                        deletePermission="acts.delete"
+                      />
+                    </TableCell>
+                  </TableRow>
+                  {expandedRows.includes(item.id) && (
+                    <TableRow className="bg-muted/10 hover:bg-muted/20 transition-colors">
+                      <TableCell colSpan={9} className="p-0">
+                        <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 text-xs">
+                          {/* Información del Cliente */}
+                          <div className="space-y-2 ">
+                            <h4 className="font-medium text-xs mb-3 pb-2 border-b border-muted-foreground/20">Información del Cliente</h4>
+                            <div className="grid grid-cols-5 gap-1">
+                              <span className="text-muted-foreground col-span-2">Dirección:</span>
+                              <span className="font-medium col-span-3 whitespace-pre-wrap break-words" title={item.customer.address}>
+                                {item.customer.address}
+                              </span>
+                              <span className="text-muted-foreground col-span-2">Medidor Antiguo:</span>
+                              <span className="font-medium col-span-3">{item.customer.old_meter}</span>
+                              <span className="text-muted-foreground col-span-2">Lectura:</span>
+                              <span className="font-medium col-span-3">{item.reading}</span>
                             </div>
-                            {/* Detalles del Medidor */}
-                            <div className="space-y-2">
-                              <h4 className="font-medium text-xs mb-3 pb-2 border-b border-muted-foreground/20">Detalles del Medidor</h4>
-                              <div className="grid grid-cols-5 gap-1">
-                                <span className="text-muted-foreground col-span-2">Número:</span>
-                                <span className="font-medium col-span-3">{item.meter.meter_number}</span>
+                          </div>
+                          {/* Detalles del Medidor */}
+                          <div className="space-y-2">
+                            <h4 className="font-medium text-xs mb-3 pb-2 border-b border-muted-foreground/20">Detalles del Medidor</h4>
+                            <div className="grid grid-cols-5 gap-1">
+                              <span className="text-muted-foreground col-span-2">Número:</span>
+                              <span className="font-medium col-span-3">{item.meter.meter_number}</span>
 
-                                <span className="text-muted-foreground col-span-2">Código:</span>
-                                <span className="font-medium col-span-3">{item.meter.verification_code}</span>
-                              </div>
+                              <span className="text-muted-foreground col-span-2">Código:</span>
+                              <span className="font-medium col-span-3">{item.meter.verification_code}</span>
                             </div>
-                            {/* Historial */}
-                            <div className="space-y-2 col-span-1 md:col-span-2">
-                              <h4 className="font-medium text-xs mb-3 pb-2 border-b border-muted-foreground/20">Historial</h4>
-                              {item.histories && item.histories.length > 0 ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                  {/* Creación */}
+                          </div>
+                          {/* Historial */}
+                          <div className="space-y-2 col-span-1 md:col-span-2">
+                            <h4 className="font-medium text-xs mb-3 pb-2 border-b border-muted-foreground/20">Historial</h4>
+                            {item.histories && item.histories.length > 0 ? (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {/* Creación */}
+                                <div className="space-y-1">
+                                  <div className="flex items-center gap-2">
+                                    <span className="bg-primary/10 text-primary px-2 py-1 rounded-full">Creación</span>
+                                    <span className="text-muted-foreground">
+                                      {item.histories.find(h => h.action === "CREATE")?.updated_at
+                                        ? new Date(item.histories.find(h => h.action === "CREATE")?.updated_at ?? "").toLocaleDateString('es-PE', {
+                                          day: '2-digit',
+                                          month: 'short',
+                                          year: 'numeric'
+                                        })
+                                        : "N/A"}
+                                    </span>
+                                  </div>
+                                  <p className="font-medium flex items-center gap-1">
+                                    <UserIcon className="h-4 w-4 text-muted-foreground" />
+                                    {item.histories.find(h => h.action === "CREATE")?.user?.names || "N/A"}
+                                  </p>
+                                </div>
+                                {/* Actualización (si existe) */}
+                                {item.histories.some(h => h.action === "UPDATE") && (
                                   <div className="space-y-1">
                                     <div className="flex items-center gap-2">
-                                      <span className="bg-primary/10 text-primary px-2 py-1 rounded-full">Creación</span>
+                                      <span className="bg-blue-100 text-blue-600 px-2 py-1 rounded-full">Actualización</span>
                                       <span className="text-muted-foreground">
-                                        {item.histories.find(h => h.action === "CREATE")?.updated_at
-                                          ? new Date(item.histories.find(h => h.action === "CREATE")?.updated_at ?? "").toLocaleDateString('es-PE', {
+                                        {item.histories.find(h => h.action === "UPDATE")?.updated_at
+                                          ? new Date(item.histories.find(h => h.action === "UPDATE")?.updated_at ?? "").toLocaleDateString('es-PE', {
                                             day: '2-digit',
                                             month: 'short',
                                             year: 'numeric'
@@ -273,52 +291,30 @@ export default function ActTable({ onEdit, onDelete, fetchData }: Props) {
                                     </div>
                                     <p className="font-medium flex items-center gap-1">
                                       <UserIcon className="h-4 w-4 text-muted-foreground" />
-                                      {item.histories.find(h => h.action === "CREATE")?.user?.names || "N/A"}
+                                      {item.histories.findLast(h => h.action === "UPDATE")?.user?.names || "N/A"}
                                     </p>
-                                  </div>
-                                  {/* Actualización (si existe) */}
-                                  {item.histories.some(h => h.action === "UPDATE") && (
-                                    <div className="space-y-1">
-                                      <div className="flex items-center gap-2">
-                                        <span className="bg-blue-100 text-blue-600 px-2 py-1 rounded-full">Actualización</span>
-                                        <span className="text-muted-foreground">
-                                          {item.histories.find(h => h.action === "UPDATE")?.updated_at
-                                            ? new Date(item.histories.find(h => h.action === "UPDATE")?.updated_at ?? "").toLocaleDateString('es-PE', {
-                                              day: '2-digit',
-                                              month: 'short',
-                                              year: 'numeric'
-                                            })
-                                            : "N/A"}
-                                        </span>
+                                    {item.histories.findLast(h => h.action === "UPDATE")?.details && (
+                                      <div className="bg-muted/30 p-2 rounded mt-1">
+                                        <p className="text-muted-foreground font-medium">Detalles:</p>
+                                        <p className="whitespace-pre-wrap">{item.histories.findLast(h => h.action === "UPDATE")?.details}</p>
                                       </div>
-                                      <p className="font-medium flex items-center gap-1">
-                                        <UserIcon className="h-4 w-4 text-muted-foreground" />
-                                        {item.histories.findLast(h => h.action === "UPDATE")?.user?.names || "N/A"}
-                                      </p>
-                                      {item.histories.findLast(h => h.action === "UPDATE")?.details && (
-                                        <div className="bg-muted/30 p-2 rounded mt-1">
-                                          <p className="text-muted-foreground font-medium">Detalles:</p>
-                                          <p className="whitespace-pre-wrap">{item.histories.findLast(h => h.action === "UPDATE")?.details}</p>
-                                        </div>
-                                      )}
-                                    </div>
-                                  )}
-                                </div>
-                              ) : (
-                                <div className="text-muted-foreground italic">No hay registros de historial</div>
-                              )}
-                            </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="text-muted-foreground italic">No hay registros de historial</div>
+                            )}
                           </div>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </React.Fragment>
-                ))
-              )}
-            </TableBody>
-          </Table>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </React.Fragment>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </div>
 
       {/* Paginación */}

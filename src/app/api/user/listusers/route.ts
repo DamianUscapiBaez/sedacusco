@@ -13,6 +13,9 @@ export async function GET(request: Request) {
         // Consulta eficiente con transaction
         const [data, total] = await prisma.$transaction([
             prisma.user.findMany({
+                where: {
+                    deleted_at: null // Asegúrate de filtrar los usuarios eliminados
+                },
                 skip,
                 take: limit,
                 include: { role: true },

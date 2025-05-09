@@ -114,7 +114,7 @@ export default function LotPage() {
 
             handleClose();
             refreshTable();
-            
+
         } catch (error) {
             console.error("❌ Error al guardar:", error);
             Swal.fire({
@@ -131,29 +131,59 @@ export default function LotPage() {
         }
     };
 
-    return (
-        <div className="mt-4 w-full max-w-[100vw] px-4">
-            <Card className="w-full max-w-[100vw] mx-auto overflow-visible">
-                <CardHeader>
-                    <CardTitle className="text-2xl font-bold">Lotes</CardTitle>
-                    <CardDescription className="grid grid-cols-1 md:grid-cols-2 items-center">
-                        <p>Gestiona los lotes de la aplicación.</p>
-                        <PermissionWrapper permission="lots.create">
-                            <div className="flex flex-row items-center justify-center md:justify-end gap-2 w-full mt-4">
-                                <Button
-                                    className="bg-emerald-500 hover:bg-emerald-600 text-white w-full md:w-auto"
-                                    onClick={() => handleOpenEdit(null)}
-                                >
-                                    <HiUserAdd className="mr-2 h-4 w-4" /> Nuevo Lote
-                                </Button>
-                            </div>
-                        </PermissionWrapper>
-                    </CardDescription>
+    const handleDelete = async (id: number) => {
+        const result = await Swal.fire({
+            title: '¿Estás seguro?',
+            text: '¡Esta acción no se puede deshacer!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        });
 
+        if (!result.isConfirmed) return;
+
+        try {
+            const response = await fetch(`/api/lot/deletelot?id=${id}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) throw new Error('Error al eliminar el registro');
+
+            await Swal.fire('¡Eliminado!', 'El registro ha sido eliminado correctamente.', 'success');
+            refreshTable();
+        } catch (error) {
+            console.error('Error al eliminar:', error);
+            Swal.fire('Error', 'Hubo un problema al eliminar el registro.', 'error');
+        }
+    };
+
+    return (
+        <div className="mt-4 w-full px-4">
+            <Card className="w-full mx-auto overflow-visible">
+                <CardHeader>
+                    <CardTitle className="text-xl sm:text-2xl font-bold">Lotes</CardTitle>
+                    <CardDescription>
+                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:items-center">
+                            <p className="text-sm sm:text-base">Gestiona los lotes de la aplicación.</p>
+                            <PermissionWrapper permission="lots.create">
+                                <div className="flex flex-col sm:flex-row sm:justify-end gap-2 w-full">
+                                    <Button
+                                        className="bg-emerald-500 hover:bg-emerald-600 text-white w-full sm:w-auto"
+                                        onClick={() => handleOpenEdit(null)}
+                                    >
+                                        <HiUserAdd className="mr-2 h-4 w-4" /> Nuevo Lote
+                                    </Button>
+                                </div>
+                            </PermissionWrapper>
+                        </div>
+                    </CardDescription>
                 </CardHeader>
-                <CardContent className="w-full overflow-visible">
+                <CardContent className="w-full overflow-x-auto">
                     <LotTable
-                        onDelete={() => { }}
+                        onDelete={handleDelete}
                         fetchData={fetchData}
                         refreshTrigger={refreshTrigger}
                         onEdit={handleOpenEdit}
@@ -163,7 +193,7 @@ export default function LotPage() {
             <LotDialog
                 open={open}
                 onClose={handleClose}
-                editData={editData}
+                editData={editData} 
                 onSubmit={handleSubmit}
             />
         </div>

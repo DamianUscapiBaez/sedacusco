@@ -193,7 +193,7 @@ export default function LabeledDialog({
             };
 
             const endpoint = editData?.id
-                ? `/api/labeled/updatelabeled`
+                ? `/api/labeled/updatelabeled?id=${editData.id}`
                 : '/api/labeled/newlabeled';
             const method = editData?.id ? 'PUT' : 'POST';
 

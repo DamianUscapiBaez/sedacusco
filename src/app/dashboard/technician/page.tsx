@@ -128,6 +128,34 @@ export default function TechnicianPage() {
             });
         }
     };
+    const handleDelete = async (id: number) => {
+        const result = await Swal.fire({
+            title: '¿Estás seguro?',
+            text: '¡Esta acción no se puede deshacer!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (!result.isConfirmed) return;
+
+        try {
+            const response = await fetch(`/api/technician/deletetechnician?id=${id}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) throw new Error('Error al eliminar el registro');
+
+            await Swal.fire('¡Eliminado!', 'El registro ha sido eliminado correctamente.', 'success');
+            refreshTable();
+        } catch (error) {
+            console.error('Error al eliminar:', error);
+            Swal.fire('Error', 'Hubo un problema al eliminar el registro.', 'error');
+        }
+    };
 
     return (
         <div className="mt-4 px-4">

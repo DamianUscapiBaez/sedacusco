@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";  // Asegúrate de importar useState
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import { Button } from "@/components/ui/button";
@@ -12,9 +12,7 @@ import { signIn } from "next-auth/react";
 
 export default function LoginPage() {
     const router = useRouter();
-
     const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm();
-
 
     const onSubmit = handleSubmit(async (data) => {
         try {
@@ -24,9 +22,7 @@ export default function LoginPage() {
                 redirect: false,
             });
 
-            if (result?.error) {
-                throw new Error(result.error);
-            }
+            if (result?.error) throw new Error(result.error);
 
             await Swal.fire({
                 icon: "success",
@@ -47,29 +43,23 @@ export default function LoginPage() {
     });
 
     return (
-        <div className={`flex min-h-screen flex-col items-center justify-center p-4 transition-colors duration-300`}>
+        <div className="flex min-h-screen items-center justify-center px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-background transition-colors">
             <div className="w-full max-w-md space-y-8">
                 <div className="text-center">
-                    <h2 className="text-3xl font-bold tracking-tight transition-colors duration-300">
-                        Iniciar sesión
-                    </h2>
-                    <p className={`mt-2 text-sm transition-colors duration-300 `}>
+                    <h2 className="text-3xl font-bold tracking-tight">Iniciar sesión</h2>
+                    <p className="mt-2 text-sm text-muted-foreground">
                         Ingresa tus credenciales para acceder al sistema
                     </p>
                 </div>
 
-                <Card className={`transition-colors duration-300`}>
+                <Card className="shadow-md transition-colors">
                     <CardHeader>
-                        <CardTitle className={`transition-colors duration-300`}>
-                            Credenciales
-                        </CardTitle>
+                        <CardTitle className="text-lg font-medium">Credenciales</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <form className="space-y-6" onSubmit={onSubmit}>
                             <div>
-                                <Label className={`mb-2 transition-colors duration-300 `} htmlFor="username">
-                                    Nombre de usuario
-                                </Label>
+                                <Label htmlFor="username">Nombre de usuario</Label>
                                 <Input
                                     id="username"
                                     {...register('username', {
@@ -79,9 +69,9 @@ export default function LoginPage() {
                                             message: 'Mínimo 3 caracteres'
                                         }
                                     })}
+                                    className="mt-2"
                                     type="text"
                                     placeholder="usuario123"
-                                    className="mt-1 transition-colors duration-300"
                                     disabled={isSubmitting}
                                 />
                                 {errors.username && (
@@ -92,9 +82,7 @@ export default function LoginPage() {
                             </div>
 
                             <div>
-                                <Label className={`mb-2 transition-colors duration-300 `} htmlFor="password">
-                                    Contraseña
-                                </Label>
+                                <Label htmlFor="password">Contraseña</Label>
                                 <PasswordInput
                                     id="password"
                                     {...register('password', {
@@ -104,8 +92,8 @@ export default function LoginPage() {
                                             message: 'Mínimo 6 caracteres'
                                         }
                                     })}
+                                    className="mt-2"
                                     placeholder="••••••••"
-                                    className={`mt-1 transition-colors duration-300 `}
                                     disabled={isSubmitting}
                                 />
                                 {errors.password && (
@@ -115,11 +103,7 @@ export default function LoginPage() {
                                 )}
                             </div>
 
-                            <Button
-                                type="submit"
-                                className="w-full"
-                                disabled={isSubmitting}
-                            >
+                            <Button type="submit" className="w-full" disabled={isSubmitting}>
                                 {isSubmitting ? (
                                     <span className="flex items-center justify-center">
                                         <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

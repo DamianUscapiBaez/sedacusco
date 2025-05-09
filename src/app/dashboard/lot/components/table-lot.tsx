@@ -58,24 +58,25 @@ export default function LotTable({ onEdit, onDelete, fetchData, refreshTrigger }
     return (
         <div className="space-y-4">
             <div className="rounded-md border relative">
-                <ScrollArea className="h-[calc(100vh-320px)] w-full overflow-auto rounded-md border">
-                    <Table className="table-auto w-full">
+                {/* Scroll horizontal solo si es necesario */}
+                <div className="w-full overflow-x-auto">
+                    <Table className="min-w-[600px] w-full text-sm">
                         <TableHeader className="sticky top-0 bg-background z-10 shadow-md">
                             <TableRow className="hover:bg-transparent">
-                                <TableHead className="px-4 py-2">#</TableHead>
-                                <TableHead className="px-4 py-2">NOMBRE DE LOTE</TableHead>
-                                <TableHead className="px-4 py-2">FECHA INICIO</TableHead>
-                                <TableHead className="px-4 py-2">FECHA FINAL</TableHead>
-                                <TableHead className="px-4 py-2">ESTADO</TableHead>
-                                <TableHead className="px-4 py-2 text-right">Acciones</TableHead>
+                                <TableHead className="px-2 py-2 text-xs whitespace-nowrap">#</TableHead>
+                                <TableHead className="px-2 py-2 text-xs whitespace-nowrap">NOMBRE DE LOTE</TableHead>
+                                <TableHead className="px-2 py-2 text-xs whitespace-nowrap">FECHA INICIO</TableHead>
+                                <TableHead className="px-2 py-2 text-xs whitespace-nowrap">FECHA FINAL</TableHead>
+                                <TableHead className="px-2 py-2 text-xs whitespace-nowrap">ESTADO</TableHead>
+                                <TableHead className="px-2 py-2 text-xs text-right whitespace-nowrap">Acciones</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {loading ? (
                                 Array.from({ length: 5 }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`}>
-                                        {Array.from({ length: 5 }).map((_, cellIdx) => (
-                                            <TableCell key={`skeleton-cell-${index}-${cellIdx}`}>
+                                        {Array.from({ length: 6 }).map((_, cellIdx) => (
+                                            <TableCell key={`skeleton-cell-${index}-${cellIdx}`} className="px-2 py-2">
                                                 <Skeleton className="h-4 w-full" />
                                             </TableCell>
                                         ))}
@@ -83,19 +84,19 @@ export default function LotTable({ onEdit, onDelete, fetchData, refreshTrigger }
                                 ))
                             ) : data.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="text-center py-8">
+                                    <TableCell colSpan={6} className="text-center py-8 text-sm">
                                         No hay datos disponibles
                                     </TableCell>
                                 </TableRow>
                             ) : (
                                 data.map((item) => (
                                     <TableRow key={item.id} className="hover:bg-muted">
-                                        <TableCell className="px-4 py-2 font-medium">{item.id}</TableCell>
-                                        <TableCell className="px-4 py-2">{item.name || "N/A"}</TableCell>
-                                        <TableCell className="px-4 py-2">{item.start_date || "N/A"}</TableCell>
-                                        <TableCell className="px-4 py-2">{item.end_date || "N/A"}</TableCell>
-                                        <TableCell className="px-4 py-2">{item.status || "N/A"}</TableCell>
-                                        <TableCell className="px-4 py-2 flex justify-end gap-2">
+                                        <TableCell className="px-2 py-2 font-medium text-xs">{item.id}</TableCell>
+                                        <TableCell className="px-2 py-2 text-xs">{item.name || "N/A"}</TableCell>
+                                        <TableCell className="px-2 py-2 text-xs">{item.start_date || "N/A"}</TableCell>
+                                        <TableCell className="px-2 py-2 text-xs">{item.end_date || "N/A"}</TableCell>
+                                        <TableCell className="px-2 py-2 text-xs">{item.status || "N/A"}</TableCell>
+                                        <TableCell className="px-2 py-2 flex justify-end gap-2 text-xs">
                                             <ActionButtons
                                                 onEdit={() => onEdit(item)}
                                                 onDelete={item.id ? () => onDelete(item.id) : undefined}
@@ -108,19 +109,15 @@ export default function LotTable({ onEdit, onDelete, fetchData, refreshTrigger }
                             )}
                         </TableBody>
                     </Table>
-                </ScrollArea>
+                </div>
             </div>
-
-            {/* Paginación */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center space-x-2">
-                    <p className="text-sm text-muted-foreground">
+            {/* Paginación responsiva */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                    <p className="text-muted-foreground">
                         Mostrando {(page - 1) * rowsPerPage + 1}-{Math.min(page * rowsPerPage, totalRows)} de {totalRows} registros
                     </p>
-                    <Select
-                        value={rowsPerPage.toString()}
-                        onValueChange={handleRowsPerPageChange}
-                    >
+                    <Select value={rowsPerPage.toString()} onValueChange={handleRowsPerPageChange}>
                         <SelectTrigger className="h-8 w-[80px]">
                             <SelectValue placeholder={rowsPerPage} />
                         </SelectTrigger>
@@ -142,8 +139,8 @@ export default function LotTable({ onEdit, onDelete, fetchData, refreshTrigger }
                     >
                         <FiChevronLeft className="h-4 w-4" />
                     </Button>
-                    <div className="flex items-center justify-center px-4">
-                        <span className="text-sm">
+                    <div className="flex items-center justify-center px-2">
+                        <span>
                             Página {page} de {totalPages}
                         </span>
                     </div>

@@ -116,10 +116,10 @@ export async function POST(request: Request) {
                     }
                 },
                 include: {
-                    customer: { select: { name: true } },
+                    customer: { select: { customer_name: true, inscription: true, old_meter: true, address: true } },
                     technician: { select: { name: true } },
                     lot: { select: { name: true } },
-                    ...(meterrenovationId && { meter: { select: { serial_number: true } } })
+                    ...(meterrenovationId && { meter: { select: { meter_number: true, verification_code: true } } })
                 }
             });
 

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/libs/db";
+
 interface PreCatastralWhereInput {
   file_number?: {
     contains: string;
@@ -11,6 +12,7 @@ interface PreCatastralWhereInput {
     };
   };
 }
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -21,12 +23,12 @@ export async function GET(request: Request) {
     const skip = (page - 1) * limit;
 
     // query params
-    const file = searchParams.get("file");
-    const inscription = searchParams.get("inscription");
+    const file = searchParams.get("file")?.trim();
+    const inscription = searchParams.get("inscription")?.trim(); // Added trim() for inscription
 
     // Construir condiciones WHERE de manera segura
     const where: PreCatastralWhereInput = {
-      deleted_at: null,
+      deleted_at: null, // Solo registros no eliminados
     };
 
     if (file) {
@@ -44,6 +46,9 @@ export async function GET(request: Request) {
         skip,
         take: limit,
         select: {
+          id: true,
+          file_number: true,
+          property: true,
           customer: true,
           technician: true,
           histories: {

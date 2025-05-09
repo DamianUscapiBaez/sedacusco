@@ -58,53 +58,51 @@ export default function RoleTable({ onEdit, onDelete, fetchData, refreshTrigger 
     return (
         <div className="space-y-4">
             <div className="rounded-md border relative">
-                <ScrollArea className="h-[calc(100vh-320px)] w-full overflow-auto rounded-md border">
-                    <Table className="table-auto w-full">
-                        <TableHeader className="sticky top-0 bg-background z-10 shadow-md">
-                            <TableRow className="hover:bg-transparent">
-                                <TableHead className="px-4 py-2">#</TableHead>
-                                <TableHead className="px-4 py-2">Nombre del rol</TableHead>
-                                <TableHead className="px-4 py-2">Descripción</TableHead>
-                                <TableHead className="px-4 py-2 text-right">Acciones</TableHead>
+                <Table className="min-w-[600px] w-full text-sm">
+                    <TableHeader className="sticky top-0 bg-background z-10 shadow-md">
+                        <TableRow className="hover:bg-transparent">
+                            <TableHead className="px-2 py-2 text-xs whitespace-nowrap">#</TableHead>
+                            <TableHead className="px-2 py-2 text-xs whitespace-nowrap">Nombre del rol</TableHead>
+                            <TableHead className="px-2 py-2 text-xs whitespace-nowrap">Descripción</TableHead>
+                            <TableHead className="text-right px-2 py-2 text-xs whitespace-nowrap">Acciones</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {loading ? (
+                            Array.from({ length: 5 }).map((_, index) => (
+                                <TableRow key={`skeleton-${index}`}>
+                                    {Array.from({ length: 5 }).map((_, cellIdx) => (
+                                        <TableCell key={`skeleton-cell-${index}-${cellIdx}`}>
+                                            <Skeleton className="h-4 w-full" />
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                            ))
+                        ) : data.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={5} className="text-center py-8">
+                                    No hay datos disponibles
+                                </TableCell>
                             </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {loading ? (
-                                Array.from({ length: 5 }).map((_, index) => (
-                                    <TableRow key={`skeleton-${index}`}>
-                                        {Array.from({ length: 5 }).map((_, cellIdx) => (
-                                            <TableCell key={`skeleton-cell-${index}-${cellIdx}`}>
-                                                <Skeleton className="h-4 w-full" />
-                                            </TableCell>
-                                        ))}
-                                    </TableRow>
-                                ))
-                            ) : data.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={5} className="text-center py-8">
-                                        No hay datos disponibles
+                        ) : (
+                            data.map((item) => (
+                                <TableRow key={item.id} className="hover:bg-muted">
+                                    <TableCell className="px-4 py-2 font-medium">{item.id}</TableCell>
+                                    <TableCell className="px-4 py-2">{item.name || "N/A"}</TableCell>
+                                    <TableCell className="px-4 py-2">{item.description || "N/A"}</TableCell>
+                                    <TableCell className="px-4 py-2 flex justify-end gap-2">
+                                        <ActionButtons
+                                            onEdit={() => onEdit(item)}
+                                            onDelete={item.id ? () => onDelete(item.id) : undefined}
+                                            editPermission="roles.update"
+                                            deletePermission="roles.delete"
+                                        />
                                     </TableCell>
                                 </TableRow>
-                            ) : (
-                                data.map((item) => (
-                                    <TableRow key={item.id} className="hover:bg-muted">
-                                        <TableCell className="px-4 py-2 font-medium">{item.id}</TableCell>
-                                        <TableCell className="px-4 py-2">{item.name || "N/A"}</TableCell>
-                                        <TableCell className="px-4 py-2">{item.description || "N/A"}</TableCell>
-                                        <TableCell className="px-4 py-2 flex justify-end gap-2">
-                                            <ActionButtons
-                                                onEdit={() => onEdit(item)}
-                                                onDelete={item.id ? () => onDelete(item.id) : undefined}
-                                                editPermission="roles.update"
-                                                deletePermission="roles.delete"
-                                            />
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                </ScrollArea>
+                            ))
+                        )}
+                    </TableBody>
+                </Table>
             </div>
 
             {/* Paginación */}

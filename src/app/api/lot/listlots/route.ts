@@ -5,6 +5,7 @@ export async function GET(request: Request) {
     try {
         // Consulta sin transacción
         const data = await prisma.lot.findMany({
+            where: { deleted_at: null }, // Asegúrate de que este campo exista en tu modelo
             orderBy: {
                 id: 'asc',  // Asegúrate de que 'id' es el campo correcto por el cual deseas ordenar
             },

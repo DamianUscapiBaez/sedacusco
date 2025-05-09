@@ -6,7 +6,7 @@ export async function GET(request: Request) {
     // Obtener parámetros de la URL
     const { searchParams } = new URL(request.url);
     const dni = searchParams.get("dni");  // Obtener el 'dni' desde los parámetros de la URL
-    
+
     // Validar que 'dni' no esté vacío
     if (!dni) {
       return NextResponse.json(
@@ -18,7 +18,8 @@ export async function GET(request: Request) {
     // Buscar un único técnico por 'dni'
     const technician = await prisma.technician.findFirst({
       where: {
-        dni: dni,  // Buscar por el 'dni' exacto
+        dni: dni,
+        deleted_at: null  // Buscar por el 'dni' exacto
       },
     });
 

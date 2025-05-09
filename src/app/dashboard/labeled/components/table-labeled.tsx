@@ -152,126 +152,124 @@ export default function LabeledTable({ onEdit, onDelete, fetchData }: LabeledTab
       </div>
 
       {/* Tabla */}
-      <div className="rounded-md border relative">
-        <ScrollArea className="h-[calc(100vh-380px)] w-full overflow-auto">
-          <Table className="table-fixed w-full">
-            <TableHeader className="sticky top-0 bg-background z-10">
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="w-8"></TableHead>
-                <TableHead className="w-12">ID</TableHead>
-                <TableHead>Nombre Caja</TableHead>
-                <TableHead>Cant. Medidores</TableHead>
-                <TableHead>Lote</TableHead>
-                <TableHead>Fecha Creación</TableHead>
-                <TableHead className="text-right w-24">Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                Array.from({ length: 6 }).map((_, index) => (
-                  <TableRow key={`skeleton-${index}`}>
-                    {Array.from({ length: 6 }).map((_, cellIdx) => (
-                      <TableCell key={`skeleton-cell-${index}-${cellIdx}`}>
-                        <Skeleton className="h-4 w-full" />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : data.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
-                    {appliedFilters.box || appliedFilters.meter
-                      ? "No se encontraron resultados"
-                      : "No hay datos disponibles"}
-                  </TableCell>
+      <div className="w-full overflow-x-auto">
+        <Table className="min-w-[600px] w-full text-sm">
+          <TableHeader className="sticky top-0 bg-background z-10 shadow-md">
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="w-8 px-2 py-2 text-xs whitespace-nowrap"></TableHead>
+              <TableHead className="px-2 py-2 text-xs whitespace-nowrap">ID</TableHead>
+              <TableHead className="px-2 py-2 text-xs whitespace-nowrap">Nombre Caja</TableHead>
+              <TableHead className="px-2 py-2 text-xs whitespace-nowrap">Cant. Medidores</TableHead>
+              <TableHead className="px-2 py-2 text-xs whitespace-nowrap">Lote</TableHead>
+              <TableHead className="px-2 py-2 text-xs whitespace-nowrap">Fecha Creación</TableHead>
+              <TableHead className="text-right px-2 py-2 text-xs whitespace-nowrap">Acciones</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              Array.from({ length: 6 }).map((_, index) => (
+                <TableRow key={`skeleton-${index}`}>
+                  {Array.from({ length: 6 }).map((_, cellIdx) => (
+                    <TableCell key={`skeleton-cell-${index}-${cellIdx}`}>
+                      <Skeleton className="h-4 w-full" />
+                    </TableCell>
+                  ))}
                 </TableRow>
-              ) : (
-                data.map((item) => (
-                  <React.Fragment key={item.id}>
-                    <TableRow className="hover:bg-muted/50">
-                      <TableCell className="p-0">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          onClick={() => toggleRowExpand(item.id)}
-                        >
-                          {expandedRows.includes(item.id) ? (
-                            <FiChevronUp className="h-4 w-4" />
+              ))
+            ) : data.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-8">
+                  {appliedFilters.box || appliedFilters.meter
+                    ? "No se encontraron resultados"
+                    : "No hay datos disponibles"}
+                </TableCell>
+              </TableRow>
+            ) : (
+              data.map((item) => (
+                <React.Fragment key={item.id}>
+                  <TableRow className="hover:bg-muted/50">
+                    <TableCell className="p-0">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={() => toggleRowExpand(item.id)}
+                      >
+                        {expandedRows.includes(item.id) ? (
+                          <FiChevronUp className="h-4 w-4" />
+                        ) : (
+                          <FiChevronDown className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </TableCell>
+                    <TableCell className="py-1 text-xs">{item.id}</TableCell>
+                    <TableCell className="py-1 text-xs">{item.name}</TableCell>
+                    <TableCell className="py-1 text-xs">{item.meters?.length || 0}</TableCell>
+                    <TableCell className="py-1 text-xs">{item.lot.name}</TableCell>
+                    <TableCell className="py-1 text-xs">{item.createdAt}</TableCell>
+                    <TableCell className="py-1 flex justify-end gap-1">
+                      <ActionButtons
+                        onEdit={() => onEdit(item)}
+                        onDelete={() => onDelete(item.id)}
+                        editPermission="labeled.update"
+                        deletePermission="labeled.delete"
+                      />
+                    </TableCell>
+                  </TableRow>
+                  {expandedRows.includes(item.id) && (
+                    <TableRow className="bg-muted/5">
+                      <TableCell colSpan={6} className="p-0">
+                        <div className="px-3 py-2 space-y-2">
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                            </svg>
+                            <span>Medidores ({item?.meters?.length || 0})</span>
+                          </div>
+                          {item?.meters && item.meters.length > 0 ? (
+                            <ScrollArea className="w-full">
+                              <div className="flex gap-2 py-1">
+                                {item.meters.map((meter) => (
+                                  <div
+                                    key={meter.id}
+                                    className="min-w-[180px] border rounded-md p-2 bg-background hover:bg-muted/50 transition-colors"
+                                  >
+                                    <div className="flex items-center justify-between mb-1">
+                                      <span className="text-xs font-medium">#{meter.id}</span>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs">
+                                      <span className="text-muted-foreground">Antiguo:</span>
+                                      <span>{meter.old_meter || '-'}</span>
+                                      <span className="text-muted-foreground">Lectura:</span>
+                                      <span className={meter.reading === 'ILEGIBLE' ? 'text-orange-500' : 'text-green-600'}>
+                                        {meter.reading}
+                                      </span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                              <ScrollBar orientation="horizontal" />
+                            </ScrollArea>
                           ) : (
-                            <FiChevronDown className="h-4 w-4" />
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground py-1">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                              </svg>
+                              No hay medidores registrados
+                            </div>
                           )}
-                        </Button>
-                      </TableCell>
-                      <TableCell className="py-1 text-xs">{item.id}</TableCell>
-                      <TableCell className="py-1 text-xs">{item.name}</TableCell>
-                      <TableCell className="py-1 text-xs">{item.meters?.length || 0}</TableCell>
-                      <TableCell className="py-1 text-xs">{item.lot.name}</TableCell>
-                      <TableCell className="py-1 text-xs">{item.createdAt}</TableCell>
-                      <TableCell className="py-1 flex justify-end gap-1">
-                        <ActionButtons
-                          onEdit={() => onEdit(item)}
-                          onDelete={() => onDelete(item.id)}
-                          editPermission="labeled.update"
-                          deletePermission="labeled.delete"
-                        />
+                        </div>
                       </TableCell>
                     </TableRow>
-                    {expandedRows.includes(item.id) && (
-                      <TableRow className="bg-muted/5">
-                        <TableCell colSpan={6} className="p-0">
-                          <div className="px-3 py-2 space-y-2">
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                              </svg>
-                              <span>Medidores ({item?.meters?.length || 0})</span>
-                            </div>
-                            {item?.meters && item.meters.length > 0 ? (
-                              <ScrollArea className="w-full">
-                                <div className="flex gap-2 py-1">
-                                  {item.meters.map((meter) => (
-                                    <div
-                                      key={meter.id}
-                                      className="min-w-[180px] border rounded-md p-2 bg-background hover:bg-muted/50 transition-colors"
-                                    >
-                                      <div className="flex items-center justify-between mb-1">
-                                        <span className="text-xs font-medium">#{meter.id}</span>
-                                      </div>
-                                      <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs">
-                                        <span className="text-muted-foreground">Antiguo:</span>
-                                        <span>{meter.old_meter || '-'}</span>
-                                        <span className="text-muted-foreground">Lectura:</span>
-                                        <span className={meter.reading === 'ILEGIBLE' ? 'text-orange-500' : 'text-green-600'}>
-                                          {meter.reading}
-                                        </span>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                                <ScrollBar orientation="horizontal" />
-                              </ScrollArea>
-                            ) : (
-                              <div className="flex items-center gap-2 text-xs text-muted-foreground py-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                  <circle cx="12" cy="12" r="10"></circle>
-                                  <line x1="12" y1="8" x2="12" y2="12"></line>
-                                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                                </svg>
-                                No hay medidores registrados
-                              </div>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </React.Fragment>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </ScrollArea>
+                  )}
+                </React.Fragment>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </div>
 
       {/* Paginación */}

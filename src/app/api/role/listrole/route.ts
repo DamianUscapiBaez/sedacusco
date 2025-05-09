@@ -13,6 +13,7 @@ export async function GET(request: Request) {
         // Consulta eficiente con transaction
         const [data, total] = await prisma.$transaction([
             prisma.role.findMany({
+                where: { deleted_at: null },
                 skip,
                 take: limit,
                 orderBy: { id: 'desc' }

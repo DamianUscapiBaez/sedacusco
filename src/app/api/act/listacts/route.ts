@@ -38,25 +38,15 @@ export async function GET(request: Request) {
     };
 
     if (file) {
-      where.file_number = {
-        contains: file
-      };
+      where.file_number = { contains: file };
     }
 
     if (inscription) {
-      where.customer = {
-        inscription: {
-          contains: inscription
-        }
-      };
+      where.customer = { inscription: { contains: inscription } };
     }
 
     if (meter) {
-      where.meter = {
-        meter_number: {
-          contains: meter
-        }
-      };
+      where.meter = { meter_number: { contains: meter } };
     }
 
     // Consulta optimizada con transaction
@@ -74,26 +64,25 @@ export async function GET(request: Request) {
           observations: true,
           customer: {
             select: {
-              id: true,
               inscription: true,
-              customer_name: true
+              old_meter: true,
+              customer_name: true,
+              address: true
             }
           },
           meter: {
             select: {
-              id: true,
               meter_number: true,
+              verification_code: true
             }
           },
           technician: {
             select: {
-              id: true,
               name: true
             }
           },
           histories: {
             select: {
-              id: true,
               action: true,
               updated_at: true,
               user: {
@@ -118,22 +107,21 @@ export async function GET(request: Request) {
     // Función de formateo de fechas reusable
     const formatDate = (date: Date | string | null): string | null => {
       if (!date) return null;
-      return new Date(date).toISOString().split('T')[0];
+      return new Date(date).toISOString().split("T")[0];
     };
-
     // Formatear respuesta
     const response = {
-      data: data.map(record => ({
+      data: data.map((record) => ({
         ...record,
         file_date: formatDate(record.file_date),
-        histories: record.histories?.map(history => ({
+        histories: record.histories?.map((history) => ({
           ...history,
           updated_at: formatDate(history.updated_at),
         })),
       })),
     };
 
-    return NextResponse.json({ data, total });
+    return NextResponse.json({ ...response, total });
   } catch (error) {
     console.error("Error in ACT API:", error);
     return NextResponse.json(

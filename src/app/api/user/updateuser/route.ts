@@ -7,8 +7,8 @@ export async function PUT(request: Request) {
         const body = await request.json();
         const { searchParams } = new URL(request.url);
 
-        // Paginación
         const id = Number(searchParams.get("id"));
+
         const {
             names,
             username,
@@ -17,36 +17,44 @@ export async function PUT(request: Request) {
             roleId
         } = body;
 
+        // Verifica si el username ya está en uso por OTRO usuario
         const existingUser = await prisma.user.findFirst({
-            where: { username },
+            where: {
+                username,
+                NOT: {
+                    id: id
+                }
+            }
         });
 
         if (existingUser) {
             return NextResponse.json(
-                { message: "Username already exists" },
+                { message: "El nombre de usuario ya está en uso." },
                 { status: 400 }
             );
         }
 
-        let hashedPassword: string | undefined;
-
-        if (password !== null && password !== "") {
-            hashedPassword = await bcrypt.hash(password, 10);
-        }
-
-        // ✅ Si todo está bien, actualizamos el registro PreCatastral
-        const actualizadoUser = await prisma.user.update({
-            where: { id },
-            data: {
+        let updateData: any = {
             names,
             username,
-            ...(hashedPassword && { password: hashedPassword }), // Solo actualiza si hashedPassword existe
             status,
-            role: { connect: { id: Number(roleId) } },  // Conexión con cliente
-            },
+            role: {
+                connect: { id: Number(roleId) }
+            }
+        };
+
+        // Si hay una nueva contraseña, hashearla y agregarla al update
+        if (password && password.trim() !== "") {
+            updateData.password = await bcrypt.hash(password, 10);
+        }
+
+        const updatedUser = await prisma.user.update({
+            where: { id },
+            data: updateData,
         });
 
-        return NextResponse.json(actualizadoUser, { status: 200 });
+        return NextResponse.json(updatedUser, { status: 200 });
+
     } catch (error) {
         console.error("Error en la API:", error);
         return NextResponse.json(

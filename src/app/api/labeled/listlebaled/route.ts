@@ -13,7 +13,9 @@ export async function GET(request: Request) {
     const box = searchParams.get("box");
     const meter = searchParams.get("meter");
 
-    const where: any = {};
+    const where: any = {
+      deleted_at: null, // Asegúrate de que este campo exista en tu modelo
+    };
 
     if (box) {
       where.name = {
