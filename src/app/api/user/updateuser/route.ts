@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/libs/db";
 import bcrypt from "bcrypt";
+import { Prisma } from "@prisma/client";
 
 export async function PUT(request: Request) {
     try {
@@ -34,7 +35,7 @@ export async function PUT(request: Request) {
             );
         }
 
-        let updateData: any = {
+        const updateData: Prisma.UserUpdateInput = {
             names,
             username,
             status,
