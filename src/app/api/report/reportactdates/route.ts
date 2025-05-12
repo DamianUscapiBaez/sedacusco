@@ -56,7 +56,9 @@ export async function GET(request: Request) {
             { header: "Inscripción", key: "inscription", width: 20 },
             { header: "Dirección", key: "address", width: 30 },
             { header: "Cliente", key: "customer_name", width: 25 },
-            { header: "N° Medidor", key: "meter_number", width: 15 },
+            { header: "Med. Antiguo", key: "meter_number", width: 15 },
+            { header: "Lectura", key: "verification_code", width: 20 },
+            { header: "Med. Nuevo", key: "meter_number", width: 15 },
             { header: "Código Verificación", key: "verification_code", width: 20 },
             { header: "DNI Técnico", key: "dni", width: 15 },
             { header: "Técnico", key: "technician_name", width: 20 },
@@ -73,7 +75,7 @@ export async function GET(request: Request) {
             const batch = await prisma.act.findMany({
                 where: whereConditions,
                 include: {
-                    customer: { select: { customer_name: true, inscription: true, address: true } },
+                    customer: { select: { customer_name: true, inscription: true, address: true, old_meter: true } },
                     meter: { select: { meter_number: true, verification_code: true } },
                     technician: { select: { name: true, dni: true } },
                     histories: {
@@ -104,6 +106,8 @@ export async function GET(request: Request) {
                     inscription: record.customer?.inscription || "N/A",
                     address: record.customer?.address || "N/A",
                     customer_name: record.customer?.customer_name || "N/A",
+                    old_meter: record.customer.old_meter || "N/A",
+                    reading: record.reading || "N/A",
                     meter_number: record.meter?.meter_number || "N/A",
                     verification_code: record.meter?.verification_code || "N/A",
                     dni: record.technician?.dni || "N/A",
