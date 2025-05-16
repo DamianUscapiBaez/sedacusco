@@ -49,7 +49,7 @@ const baseActSchema = z.object({
 });
 
 const DEFAULT_VALUES: Partial<ActForm> = {
-    file_date: new Date().toISOString().split('T')[0],
+    file_date: new Date(Date.now() - 18000000).toISOString().split('T')[0],
     file_time: "",
     file_number: "",
     inscription_number: "",

@@ -36,8 +36,8 @@ export default function ReportPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [lots, setLots] = useState<LotData[]>([]);
   const [dateRange, setDateRange] = useState({
-    start: new Date().toISOString().split('T')[0],
-    end: new Date().toISOString().split('T')[0]
+    start:  new Date(Date.now() - 18000000).toISOString().split('T')[0],
+    end:  new Date(Date.now() - 18000000).toISOString().split('T')[0]
   });
 
   const fetchLots = async () => {
