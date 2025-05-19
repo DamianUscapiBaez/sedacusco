@@ -43,21 +43,21 @@ export default function LoginPage() {
     });
 
     return (
-        <div className="flex min-h-screen items-center justify-center px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-background transition-colors">
-            <div className="w-full max-w-md space-y-8">
-                <div className="text-center">
-                    <h2 className="text-3xl font-bold tracking-tight">Iniciar sesión</h2>
+        <div className="flex min-h-screen items-center justify-center p-4 bg-gray-50 dark:bg-background transition-colors">
+            <div className="w-full max-w-md mx-4">
+                <div className="text-center mb-6">
+                    <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Iniciar sesión</h2>
                     <p className="mt-2 text-sm text-muted-foreground">
                         Ingresa tus credenciales para acceder al sistema
                     </p>
                 </div>
 
                 <Card className="shadow-md transition-colors">
-                    <CardHeader>
+                    <CardHeader className="pb-4">
                         <CardTitle className="text-lg font-medium">Credenciales</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <form className="space-y-6" onSubmit={onSubmit}>
+                    <CardContent className="pt-0">
+                        <form className="space-y-4" onSubmit={onSubmit}>
                             <div>
                                 <Label htmlFor="username">Nombre de usuario</Label>
                                 <Input
@@ -69,13 +69,13 @@ export default function LoginPage() {
                                             message: 'Mínimo 3 caracteres'
                                         }
                                     })}
-                                    className="mt-2"
+                                    className="mt-1"
                                     type="text"
                                     placeholder="usuario123"
                                     disabled={isSubmitting}
                                 />
                                 {errors.username && (
-                                    <p className="mt-1 text-sm text-red-500">
+                                    <p className="mt-1 text-xs text-red-500">
                                         {errors.username.message?.toString()}
                                     </p>
                                 )}
@@ -92,18 +92,22 @@ export default function LoginPage() {
                                             message: 'Mínimo 6 caracteres'
                                         }
                                     })}
-                                    className="mt-2"
+                                    className="mt-1"
                                     placeholder="••••••••"
                                     disabled={isSubmitting}
                                 />
                                 {errors.password && (
-                                    <p className="mt-1 text-sm text-red-500">
+                                    <p className="mt-1 text-xs text-red-500">
                                         {errors.password.message?.toString()}
                                     </p>
                                 )}
                             </div>
 
-                            <Button type="submit" className="w-full" disabled={isSubmitting}>
+                            <Button
+                                type="submit"
+                                className="w-full mt-2"
+                                disabled={isSubmitting}
+                            >
                                 {isSubmitting ? (
                                     <span className="flex items-center justify-center">
                                         <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

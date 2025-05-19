@@ -5,11 +5,18 @@ export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
 
-        // Obtener los parámetros de búsqueda
+        // Validar y obtener parámetros
         const lot = Number(searchParams.get("lot"));
-        const filterType = searchParams.get("filterType"); // "hoy" o "mensual"
+        if (isNaN(lot)) {
+            return NextResponse.json(
+                { error: "Invalid lot parameter" },
+                { status: 400 }
+            );
+        }
 
-        // Obtener el lote para extraer las fechas startDate y endDate
+        const filterType = searchParams.get("filterType"); // "hoy", "mensual" o undefined
+
+        // Obtener datos del lote
         const lotData = await prisma.lot.findUnique({
             where: { id: lot },
             select: {
@@ -25,34 +32,45 @@ export async function GET(request: Request) {
             );
         }
 
-        const { start_date: startDate, end_date: endDate } = lotData;
-
-        // Construir el filtro de fecha
-        let dateFilter: any = {};
+        // Construir filtro de fecha con mejor manejo de zonas horarias
+        let dateFilter: { gte: Date; lt?: Date; lte?: Date } | undefined;
+        
+        const now = new Date();
+        now.setHours(0, 0, 0, 0); // Normalizar a inicio del día
+        
         if (filterType === "hoy") {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const tomorrow = new Date(today);
-            tomorrow.setDate(today.getDate() + 1);
+            const tomorrow = new Date(now);
+            tomorrow.setDate(now.getDate() + 1);
             dateFilter = {
-                gte: today,
+                gte: now,
                 lt: tomorrow,
             };
         } else if (filterType === "mensual") {
-            const now = new Date();
             const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
             const firstDayOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
             dateFilter = {
                 gte: firstDayOfMonth,
                 lt: firstDayOfNextMonth,
             };
-        } else if (startDate && endDate) {
+        } else if (lotData.start_date && lotData.end_date) {
+            // Asegurarse de que las fechas del lote sean válidas
+            const startDate = new Date(lotData.start_date);
+            const endDate = new Date(lotData.end_date);
+            
+            if (startDate > endDate) {
+                return NextResponse.json(
+                    { error: "Invalid lot date range" },
+                    { status: 400 }
+                );
+            }
+            
             dateFilter = {
-                gte: new Date(startDate),
-                lte: new Date(endDate),
+                gte: startDate,
+                lte: endDate,
             };
         }
 
+        // Consulta principal mejor estructurada
         const users = await prisma.user.findMany({
             where: {
                 OR: [
@@ -61,11 +79,13 @@ export async function GET(request: Request) {
                             some: {
                                 act: {
                                     lotId: lot,
-                                    histories: {
-                                        some: {
-                                            updated_at: dateFilter, // Filtrar por fecha
+                                    ...(dateFilter && {
+                                        histories: {
+                                            some: {
+                                                updated_at: dateFilter,
+                                            },
                                         },
-                                    },
+                                    }),
                                 },
                             },
                         },
@@ -75,11 +95,13 @@ export async function GET(request: Request) {
                             some: {
                                 preCatastral: {
                                     lotId: lot,
-                                    histories: {
-                                        some: {
-                                            updated_at: dateFilter, // Filtrar por fecha
+                                    ...(dateFilter && {
+                                        histories: {
+                                            some: {
+                                                updated_at: dateFilter,
+                                            },
                                         },
-                                    },
+                                    }),
                                 },
                             },
                         },
@@ -87,6 +109,7 @@ export async function GET(request: Request) {
                 ],
             },
             select: {
+                id: true, // Siempre incluir ID para identificación única
                 names: true,
                 _count: {
                     select: {
@@ -94,11 +117,14 @@ export async function GET(request: Request) {
                             where: {
                                 action: "CREATE",
                                 act: {
-                                    histories: {
-                                        some: {
-                                            updated_at: dateFilter, // Filtrar por fecha
+                                    lotId: lot,
+                                    ...(dateFilter && {
+                                        histories: {
+                                            some: {
+                                                updated_at: dateFilter,
+                                            },
                                         },
-                                    },
+                                    }),
                                 },
                             },
                         },
@@ -106,11 +132,14 @@ export async function GET(request: Request) {
                             where: {
                                 action: "CREATE",
                                 preCatastral: {
-                                    histories: {
-                                        some: {
-                                            updated_at: dateFilter, // Filtrar por fecha
+                                    lotId: lot,
+                                    ...(dateFilter && {
+                                        histories: {
+                                            some: {
+                                                updated_at: dateFilter,
+                                            },
                                         },
-                                    },
+                                    }),
                                 },
                             },
                         },
