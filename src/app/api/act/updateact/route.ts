@@ -6,7 +6,6 @@ export async function PUT(request: Request) {
         const body = await request.json();
         const { searchParams } = new URL(request.url);
 
-        // Paginación
         const id = Number(searchParams.get("id"));
         const {
             lotId,
@@ -21,84 +20,163 @@ export async function PUT(request: Request) {
             reading_impossibility_viewer,
             customerId,
             technicianId,
-            updated_by
+            updated_by,
+            save_precatastral,
+            created_by // Añadido ya que se usa en el precatastral
         } = body;
 
-        // ✅ Verifica si el registro con ese ID existe
+        // 1. Verificación de existencia del acta
         const fichaExistente = await prisma.act.findUnique({
-            where: { id },
+            where: { id }
         });
 
         if (!fichaExistente) {
             return NextResponse.json(
                 { error: "No se encontró el registro para actualizar." },
-                { status: 400 }
+                { status: 404 } // Cambiado a 404 (Not Found)
             );
         }
 
-        // ✅ Verifica si ya existe un registro con este número de ficha, excluyendo el registro actual
-        const fichaDuplicada = await prisma.act.findFirst({
-            where: {
-                file_number,
-                NOT: { id },  // Excluye el registro actual
-            },
-        });
+        // 2. Verificaciones de duplicados
+        const [fichaDuplicada, inscripcionExistente] = await Promise.all([
+            prisma.act.findFirst({
+                where: {
+                    file_number,
+                    NOT: { id }
+                },
+            }),
+            prisma.act.findFirst({
+                where: {
+                    customerId,
+                    NOT: { id }
+                },
+            })
+        ]);
 
         if (fichaDuplicada) {
             return NextResponse.json(
                 { error: "Ya existe un registro con ese número de ficha." },
-                { status: 400 }
+                { status: 409 } // Conflict
             );
         }
-
-        // ✅ Verifica si ya existe un registro con este cliente, excluyendo el registro actual
-        const inscripcionExistente = await prisma.act.findFirst({
-            where: {
-                customerId,
-                NOT: { id },  // Excluye el registro actual
-            },
-        });
 
         if (inscripcionExistente) {
             return NextResponse.json(
                 { error: "Ya existe un registro con este cliente." },
-                { status: 400 }
+                { status: 409 } // Conflict
             );
         }
 
-        // ✅ Si todo está bien, actualizamos el registro PreCatastral
-        const actualizadoAct = await prisma.act.update({
-            where: { id },
-            data: {
-                file_number,
-                file_date: new Date(file_date), // Convertir a fecha
-                file_time: file_time ? new Date(`1970-01-01T${file_time.padEnd(8, ':00').slice(0, 8)}Z`) : null,
-                reading,
-                observations,
-                rotating_pointer,
-                meter_security_seal,
-                reading_impossibility_viewer,
-                lot: { connect: { id: Number(lotId) } },
-                customer: { connect: { id: customerId } },  // Conexión con cliente
-                technician: { connect: { id: technicianId } }, // Conexión con técnico
-                meter: { connect: { id: meterrenovationId } }, // Conexión con medidor
-                histories: {
-                    create: [
-                        {
-                            action: "UPDATE",  // Acción de actualización
-                            updated_by,  // Técnico que actualiza el registro
-                            details: `Actualización del registro con número de ficha: ${file_number}`, // Detalles del historial
+        // 3. Transacción para actualizar
+        const result = await prisma.$transaction(async (prisma) => {
+            // Actualizar el acta principal
+            const actualizadoAct = await prisma.act.update({
+                where: { id },
+                data: {
+                    file_number,
+                    file_date: new Date(file_date),
+                    file_time: file_time ? new Date(`1970-01-01T${file_time.padEnd(8, ':00').slice(0, 8)}Z`) : null,
+                    reading,
+                    observations: observations || null,
+                    rotating_pointer,
+                    meter_security_seal,
+                    reading_impossibility_viewer,
+                    lot: { connect: { id: Number(lotId) } },
+                    customer: { connect: { id: customerId } },
+                    technician: { connect: { id: technicianId } },
+                    meter: { connect: { id: meterrenovationId } },
+                    histories: {
+                        create: {
+                            action: "UPDATE",
+                            updated_by,
+                            details: `Actualización del registro con número de ficha: ${file_number}`,
                         }
-                    ]
+                    }
+                },
+                include: {
+                    customer: true,
+                    meter: true,
+                    technician: true,
+                    lot: true
                 }
-            },
+            });
+
+            // 4. Actualizar PreCatastral si es necesario
+            if (save_precatastral === "SI") {
+                // Primero verificar si ya existe un PreCatastral para este acta
+                const precatastralExistente = await prisma.preCatastral.findFirst({
+                    where: { file_number }
+                });
+
+                if (precatastralExistente) {
+                    await prisma.preCatastral.update({
+                        where: { id: precatastralExistente.id },
+                        data: {
+                            file_number,
+                            reading,
+                            observations: observations || "SIN_OBSERVACIONES",
+                            customer: { connect: { id: customerId } },
+                            technician: { connect: { id: technicianId } },
+                            lot: { connect: { id: Number(lotId) } },
+                            histories: {
+                                create: {
+                                    action: "UPDATE",
+                                    updated_by,
+                                    details: `Actualización del PreCatastral para ficha: ${file_number}`,
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    await prisma.preCatastral.create({
+                        data: {
+                            file_number,
+                            property: "DOMESTICO",
+                            located_box: "EXTERIOR",
+                            buried_connection: "NO",
+                            has_meter: "SI",
+                            reading,
+                            has_cover: "SI",
+                            cover_state: "BIEN",
+                            has_box: "SI",
+                            box_state: "BIEN",
+                            keys: "2",
+                            cover_material: "ALUMINIO",
+                            observations: observations || "SIN_OBSERVACIONES",
+                            is_located: "SI",
+                            customer: { connect: { id: customerId } },
+                            technician: { connect: { id: technicianId } },
+                            lot: { connect: { id: Number(lotId) } },
+                            histories: {
+                                create: {
+                                    action: "CREATE",
+                                    updated_by: created_by,
+                                    details: `Creación inicial del registro con número de ficha: ${file_number}`,
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
+            return actualizadoAct;
         });
 
-        return NextResponse.json(actualizadoAct, { status: 200 });
-    } catch (error) {
+        return NextResponse.json({
+            success: true,
+            data: result,
+            message: "Acta actualizada exitosamente" +
+                (save_precatastral === "SI" ? " junto con su PreCatastral" : "")
+        }, { status: 200 });
+
+    } catch (error: any) {
         console.error("Error en la API:", error);
         return NextResponse.json(
-            { error: "Error interno del servidor." },
+            {
+                success: false,
+                error: error.message || "Error interno del servidor",
+                ...(process.env.NODE_ENV === "development" && { stack: error.stack })
+            },
             { status: 500 }
         );
     }

@@ -39,7 +39,7 @@ export const FULL_MENU: SideNavItemGroup[] = [
         title: "Gestionar Almacen",
         menuList: [
             {
-                title: 'Lotes',
+                title: 'Valorizacion',
                 path: '/dashboard/lot',
                 icon: <CiBoxes size={20} />,
                 permission: 'lots.manage' // Permiso requerido

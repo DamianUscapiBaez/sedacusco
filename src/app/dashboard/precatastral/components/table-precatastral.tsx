@@ -104,6 +104,7 @@ export default function PreCatastralTable({ onEdit, onDelete, fetchData }: Props
         <div className="col-span-2 sm:col-span-1">
           <Input
             placeholder="Filtrar por Nro. Ficha"
+            name="file"
             value={searchValues.file}
             onChange={handleSearchChange}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -112,6 +113,7 @@ export default function PreCatastralTable({ onEdit, onDelete, fetchData }: Props
         <div className="col-span-2 sm:col-span-1">
           <Input
             placeholder="Filtrar por Inscripción"
+            name="inscription"
             value={searchValues.inscription}
             onChange={handleSearchChange}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}

@@ -107,6 +107,7 @@ export default function ActTable({ onEdit, onDelete, fetchData }: Props) {
         <div className="col-span-2 sm:col-span-1">
           <Input
             placeholder="Nro. Ficha"
+            name="file" // <- Añade esto
             value={searchValues.file}
             onChange={handleSearchChange}
             className="h-8 text-sm"
@@ -115,6 +116,7 @@ export default function ActTable({ onEdit, onDelete, fetchData }: Props) {
         <div className="col-span-2 sm:col-span-1">
           <Input
             placeholder="Inscripción"
+            name="inscription" // <- Añade esto
             value={searchValues.inscription}
             onChange={handleSearchChange}
             className="h-8 text-sm"
@@ -123,6 +125,7 @@ export default function ActTable({ onEdit, onDelete, fetchData }: Props) {
         <div className="col-span-2 sm:col-span-1">
           <Input
             placeholder="Medidor"
+            name="meter" // <- Añade esto
             value={searchValues.meter}
             onChange={handleSearchChange}
             className="h-8 text-sm"
