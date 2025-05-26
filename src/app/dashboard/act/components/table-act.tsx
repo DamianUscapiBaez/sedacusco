@@ -263,13 +263,22 @@ export default function ActTable({ onEdit, onDelete, fetchData }: Props) {
                                   <div className="flex items-center gap-2">
                                     <span className="bg-primary/10 text-primary px-2 py-1 rounded-full">Creación</span>
                                     <span className="text-muted-foreground">
-                                      {item.histories.find(h => h.action === "CREATE")?.updated_at
-                                        ? new Date(item.histories.find(h => h.action === "CREATE")?.updated_at ?? "").toLocaleDateString('es-PE', {
-                                          day: '2-digit',
-                                          month: 'short',
-                                          year: 'numeric'
-                                        })
-                                        : "N/A"}
+                                      <span className="text-muted-foreground">
+                                        {(() => {
+                                          const fechaStr = item.histories.find(h => h.action === "CREATE")?.updated_at;
+                                          return fechaStr
+                                            ? new Date(fechaStr).toLocaleString('es-PE', {
+                                              day: '2-digit',
+                                              month: 'short',
+                                              year: 'numeric',
+                                              hour: '2-digit',
+                                              minute: '2-digit',
+                                              hour12: true,
+                                              timeZone: 'America/Lima'
+                                            })
+                                            : 'N/A';
+                                        })()}
+                                      </span>
                                     </span>
                                   </div>
                                   <p className="font-medium flex items-center gap-1">
@@ -283,13 +292,20 @@ export default function ActTable({ onEdit, onDelete, fetchData }: Props) {
                                     <div className="flex items-center gap-2">
                                       <span className="bg-blue-100 text-blue-600 px-2 py-1 rounded-full">Actualización</span>
                                       <span className="text-muted-foreground">
-                                        {item.histories.find(h => h.action === "UPDATE")?.updated_at
-                                          ? new Date(item.histories.find(h => h.action === "UPDATE")?.updated_at ?? "").toLocaleDateString('es-PE', {
-                                            day: '2-digit',
-                                            month: 'short',
-                                            year: 'numeric'
-                                          })
-                                          : "N/A"}
+                                        {(() => {
+                                          const updatedAt = item.histories.find(h => h.action === "UPDATE")?.updated_at;
+                                          return updatedAt
+                                            ? new Date(updatedAt).toLocaleString('es-PE', {
+                                              day: '2-digit',
+                                              month: 'short',
+                                              year: 'numeric',
+                                              hour: '2-digit',
+                                              minute: '2-digit',
+                                              hour12: true,
+                                              timeZone: 'America/Lima'
+                                            })
+                                            : "N/A";
+                                        })()}
                                       </span>
                                     </div>
                                     <p className="font-medium flex items-center gap-1">

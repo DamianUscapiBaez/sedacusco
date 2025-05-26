@@ -116,7 +116,7 @@ export async function GET(request: Request) {
         file_date: formatDate(record.file_date),
         histories: record.histories?.map((history) => ({
           ...history,
-          updated_at: formatDate(history.updated_at),
+          updated_at: history.updated_at,
         })),
       })),
     };

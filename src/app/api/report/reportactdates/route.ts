@@ -24,8 +24,10 @@ export async function GET(request: Request) {
             );
         }
 
-        const date_start = new Date(params.startDate);
-        const date_end = new Date(params.endDate);
+        // Asegurar formato completo con zona horaria de Perú (UTC-5)
+        const date_start = new Date(`${params.startDate}T00:00:00-05:00`);
+        const date_end = new Date(`${params.endDate}T23:59:59.999-05:00`);
+
 
         if (isNaN(date_start.getTime())) {
             return NextResponse.json(
@@ -64,7 +66,7 @@ export async function GET(request: Request) {
         };
 
         const totalCount = await prisma.act.count({ where: whereConditions });
-
+        console.log(totalCount)
         if (totalCount === 0) {
             return NextResponse.json(
                 { error: "No se encontraron registros para el rango de fechas especificado" },
