@@ -19,7 +19,7 @@ export async function GET(request: Request) {
 
         if (!params.startDate || !params.endDate) {
             return NextResponse.json(
-                { error: "Se requieren ambas fechas (startDate y endDate)" },
+                { message: "Se requieren ambas fechas (startDate y endDate)" },
                 { status: 400 }
             );
         }
@@ -31,21 +31,21 @@ export async function GET(request: Request) {
 
         if (isNaN(date_start.getTime())) {
             return NextResponse.json(
-                { error: "Fecha de inicio inválida. Use formato YYYY-MM-DD" },
+                { message: "Fecha de inicio inválida. Use formato YYYY-MM-DD" },
                 { status: 400 }
             );
         }
 
         if (isNaN(date_end.getTime())) {
             return NextResponse.json(
-                { error: "Fecha final inválida. Use formato YYYY-MM-DD" },
+                { message: "Fecha final inválida. Use formato YYYY-MM-DD" },
                 { status: 400 }
             );
         }
 
         if (date_start > date_end) {
             return NextResponse.json(
-                { error: "La fecha de inicio no puede ser mayor a la fecha final" },
+                { message: "La fecha de inicio no puede ser mayor a la fecha final" },
                 { status: 400 }
             );
         }
@@ -69,7 +69,7 @@ export async function GET(request: Request) {
         console.log(totalCount)
         if (totalCount === 0) {
             return NextResponse.json(
-                { error: "No se encontraron registros para el rango de fechas especificado" },
+                { message: "No se encontraron registros para el rango de fechas especificado" },
                 { status: 404 }
             );
         }
@@ -241,7 +241,7 @@ export async function GET(request: Request) {
     } catch (error) {
         console.error("Error en generación de reporte:", error);
         return NextResponse.json(
-            { error: "Error interno del servidor al generar el reporte" },
+            { message: "Error interno del servidor al generar el reporte" },
             { status: 500 }
         );
     }

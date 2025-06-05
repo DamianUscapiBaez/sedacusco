@@ -7,7 +7,7 @@ export async function GET(request: Request) {
         const id = searchParams.get("id");
         if (!id) {
             return NextResponse.json(
-                { error: "ID is required" },
+                { message: "ID is required" },
                 { status: 400 }
             );
         }
@@ -23,7 +23,7 @@ export async function GET(request: Request) {
         });
         if (!record) {
             return NextResponse.json(
-                { error: "Record not found" },
+                { message: "Record not found" },
                 { status: 404 }
             );
         }
@@ -34,11 +34,11 @@ export async function GET(request: Request) {
                 record.file_time.toISOString().slice(11, 16) :
                 null,
         };
-        return NextResponse.json({ data: formattedRecord });
+        return NextResponse.json(formattedRecord, { status: 200 });
     } catch (error) {
         console.error("Error in API:", error);
         return NextResponse.json(
-            { error: "Internal Server Error" },
+            { message: "Internal Server Error" },
             { status: 500 }
         );
     }

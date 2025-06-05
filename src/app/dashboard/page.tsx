@@ -170,7 +170,7 @@ export default function DashboardPage() {
                   {isLoading ? (
                     <div className="h-8 w-24 rounded animate-pulse" />
                   ) : (
-                    totals.installed.toLocaleString()
+                    totals.installed ? totals.installed.toLocaleString() : '0'
                   )}
                 </div>
                 <p className="text-xs text-gray-500 mt-1">Total acumulado</p>
@@ -191,7 +191,7 @@ export default function DashboardPage() {
                   {isLoading ? (
                     <div className="h-8 w-24 rounded animate-pulse" />
                   ) : (
-                    totals.preInstalled.toLocaleString()
+                    totals.preInstalled ? totals.preInstalled.toLocaleString() : '0'
                   )}
                 </div>
                 <p className="text-xs text-gray-500 mt-1">Total acumulado</p>

@@ -20,7 +20,7 @@ export async function GET(request: Request) {
     } catch (error) {
         console.error("Error in API:", error);
         return NextResponse.json(
-            { error: "Internal Server Error" },
+            { message: "Internal Server Error" },
             { status: 500 }
         );
     }

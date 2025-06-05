@@ -265,8 +265,8 @@ export default function ActDialog({ open, onClose, editData, refreshTable }: { o
 
             const result = await response.json();
 
-            if (result?.error) {
-                showAlert("Error", result.error || "Algo salió mal al guardar.", "error");
+            if (result?.message) {
+                showAlert("Error", result.message || "Algo salió mal al guardar.", "error");
                 return;
             } else {
                 showAlert("¡Guardado exitosamente!", editData?.id

@@ -8,7 +8,7 @@ export async function GET(request: Request) {
 
         if (!id) {
             return NextResponse.json(
-                { error: "ID is required" },
+                { message: "ID is required" },
                 { status: 400 }
             );
         }
@@ -18,7 +18,7 @@ export async function GET(request: Request) {
 
         if (!lot) {
             return NextResponse.json(
-                { error: "Role not found" },
+                { message: "Role not found" },
                 { status: 404 }
             );
         }
@@ -34,7 +34,7 @@ export async function GET(request: Request) {
     } catch (error) {
         console.error("Error in API:", error);
         return NextResponse.json(
-            { error: "Internal Server Error" },
+            { message: "Internal Server Error" },
             { status: 500 }
         );
     }

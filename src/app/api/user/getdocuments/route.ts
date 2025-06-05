@@ -9,7 +9,7 @@ export async function GET(request: Request) {
         const lot = Number(searchParams.get("lot"));
         if (isNaN(lot)) {
             return NextResponse.json(
-                { error: "Invalid lot parameter" },
+                { message: "Invalid lot parameter" },
                 { status: 400 }
             );
         }
@@ -27,7 +27,7 @@ export async function GET(request: Request) {
 
         if (!lotData) {
             return NextResponse.json(
-                { error: "Lot not found" },
+                { message: "Lot not found" },
                 { status: 404 }
             );
         }
@@ -59,7 +59,7 @@ export async function GET(request: Request) {
             
             if (startDate > endDate) {
                 return NextResponse.json(
-                    { error: "Invalid lot date range" },
+                    { message: "Invalid lot date range" },
                     { status: 400 }
                 );
             }
@@ -152,7 +152,7 @@ export async function GET(request: Request) {
     } catch (error) {
         console.error("Error in API:", error);
         return NextResponse.json(
-            { error: "Internal Server Error" },
+            { message: "Internal Server Error" },
             { status: 500 }
         );
     }

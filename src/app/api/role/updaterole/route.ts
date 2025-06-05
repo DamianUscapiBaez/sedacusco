@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/libs/db";
+import { error } from "console";
 
 export async function PUT(request: Request) {
     try {
@@ -43,7 +44,7 @@ export async function PUT(request: Request) {
 
         if (nameExists) {
             return NextResponse.json(
-                { message: "El nombre del rol ya está en uso" },
+                { error: "El nombre del rol ya está en uso" },
                 { status: 400 }
             );
         }
@@ -57,7 +58,7 @@ export async function PUT(request: Request) {
 
         if (existingPermissions.length !== permissions.length) {
             return NextResponse.json(
-                { message: "Algunos permisos no existen" },
+                { error: "Algunos permisos no existen" },
                 { status: 400 }
             );
         }
@@ -65,7 +66,7 @@ export async function PUT(request: Request) {
         // Actualizar el rol y permisos (transacción)
         const updatedRole = await prisma.$transaction(async (prisma) => {
             // 1. Actualizar datos básicos del rol
-            const role = await prisma.role.update({
+            await prisma.role.update({
                 where: { id },
                 data: {
                     name,

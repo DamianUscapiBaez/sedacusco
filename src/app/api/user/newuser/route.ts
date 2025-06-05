@@ -20,7 +20,7 @@ export async function POST(request: Request) {
 
         if (existingUser) {
             return NextResponse.json(
-                { message: "Username already exists" },
+                { message: "El nombre de usuario ya se encuentra registrado" },
                 { status: 400 }
             );
         }
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     } catch (error) {
         console.error("Error en la API:", error);
         return NextResponse.json(
-            { error: "Error interno del servidor." },
+            { message: "Error interno del servidor." },
             { status: 500 }
         );
     }

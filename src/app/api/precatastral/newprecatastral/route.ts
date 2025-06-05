@@ -33,7 +33,7 @@ export async function POST(request: Request) {
 
         if (fichaExistente) {
             return NextResponse.json(
-                { error: "Ya existe un registro con ese número de ficha." },
+                { message: "Ya existe un registro con ese número de ficha." },
                 { status: 400 }
             );
         }
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
 
         if (inscripcionExistente) {
             return NextResponse.json(
-                { error: `Ya existe la ficha ${inscripcionExistente?.file_number} con este cliente.` },
+                { message: `Ya existe la ficha ${inscripcionExistente?.file_number} con este cliente.` },
                 { status: 400 }
             );
         }
@@ -87,7 +87,7 @@ export async function POST(request: Request) {
     } catch (error) {
         console.error("Error en la API:", error);
         return NextResponse.json(
-            { error: "Error interno del servidor." },
+            { message: "Error interno del servidor." },
             { status: 500 }
         );
     }

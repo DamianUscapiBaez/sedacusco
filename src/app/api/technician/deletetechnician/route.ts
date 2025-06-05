@@ -9,7 +9,7 @@ export async function DELETE(request: Request) {
         // 1️⃣ Validar que el ID existe
         if (!id || isNaN(id)) {
             return NextResponse.json(
-                { error: "ID de técnico no válido o no proporcionado." },
+                { message: "ID de técnico no válido o no proporcionado." },
                 { status: 400 }
             );
         }
@@ -20,7 +20,7 @@ export async function DELETE(request: Request) {
 
         if (!tecnicoExistente) {
             return NextResponse.json(
-                { error: "El técnico no existe o ya fue eliminado." },
+                { message: "El técnico no existe o ya fue eliminado." },
                 { status: 404 }
             );
         }
@@ -43,7 +43,7 @@ export async function DELETE(request: Request) {
         console.error("Error al eliminar técnico:", error);
         // Manejo específico de errores de Prisma
         return NextResponse.json(
-            { error: "Error interno del servidor al procesar la eliminación." },
+            { message: "Error interno del servidor al procesar la eliminación." },
             { status: 500 }
         );
     }

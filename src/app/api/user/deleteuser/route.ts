@@ -9,7 +9,7 @@ export async function DELETE(request: Request) {
         // 1️⃣ Validar que el ID existe
         if (!id || isNaN(id)) {
             return NextResponse.json(
-                { error: "ID de acta no válido o no proporcionado." },
+                { message: "ID de acta no válido o no proporcionado." },
                 { status: 400 }
             );
         }
@@ -20,7 +20,7 @@ export async function DELETE(request: Request) {
 
         if (!userExistente) {
             return NextResponse.json(
-                { error: "El usuario no existe o ya fue eliminado." },
+                { message: "El usuario no existe o ya fue eliminado." },
                 { status: 404 }
             );
         }
@@ -33,17 +33,13 @@ export async function DELETE(request: Request) {
             }
         });
 
-        return NextResponse.json({
-            success: true,
-            message: "Usuario eliminado correctamente",
-            data: userEliminado
-        }, { status: 200 });
+        return NextResponse.json(userEliminado, { status: 200 });
 
     } catch (error) {
         console.error("Error al eliminar usuario:", error);
         // Manejo específico de errores de Prisma
         return NextResponse.json(
-            { error: "Error interno del servidor al procesar la eliminación." },
+            { message: "Error interno del servidor al procesar la eliminación." },
             { status: 500 }
         );
     }

@@ -13,7 +13,7 @@ export async function PUT(request: Request) {
 
         if (isNaN(id)) {
             return NextResponse.json(
-                { error: "ID inválido" },
+                { message: "ID inválido" },
                 { status: 400 }
             );
         }
@@ -31,7 +31,7 @@ export async function PUT(request: Request) {
 
         if (existingBox) {
             return NextResponse.json(
-                { error: "El nombre de la caja ya existe" },
+                { message: "El nombre de la caja ya existe" },
                 { status: 409 }
             );
         }
@@ -67,7 +67,7 @@ export async function PUT(request: Request) {
     } catch (error) {
         console.error("Error en la API:", error);
         return NextResponse.json(
-            { error: "Error interno del servidor." },
+            { message: "Error interno del servidor." },
             { status: 500 }
         );
     }

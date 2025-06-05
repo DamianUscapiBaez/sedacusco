@@ -15,14 +15,14 @@ export async function POST(request: Request) {
         // Validación mejorada
         if (!body.name?.trim()) {
             return NextResponse.json(
-                { error: "El nombre de la caja es requerido" },
+                { message: "El nombre de la caja es requerido" },
                 { status: 400 }
             );
         }
 
         if (!meters || !Array.isArray(meters) || meters.length === 0) {
             return NextResponse.json(
-                { error: "Debe incluir al menos un medidor" },
+                { message: "Debe incluir al menos un medidor" },
                 { status: 400 }
             );
         }
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
 
         if (existingBox) {
             return NextResponse.json(
-                { error: "El nombre de la caja ya existe" },
+                { message: "El nombre de la caja ya existe" },
                 { status: 409 } // 409 Conflict es más apropiado para recursos duplicados
             );
         }
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
 
         if (invalidMeters.length > 0) {
             return NextResponse.json(
-                { error: "Todos los medidores deben tener old_meter y reading válidos" },
+                { message: "Todos los medidores deben tener old_meter y reading válidos" },
                 { status: 400 }
             );
         }
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
             }
         });
 
-        return NextResponse.json({ data: newLabeled }, { status: 201 });
+        return NextResponse.json(newLabeled, { status: 201 });
 
     } catch (error) {
         console.error("Error en la API:", error);
@@ -77,13 +77,13 @@ export async function POST(request: Request) {
         // Manejo específico de errores de Prisma
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             return NextResponse.json(
-                { error: "Error en la base de datos", code: error.code },
+                { message: "Error en la base de datos", code: error.code },
                 { status: 500 }
             );
         }
 
         return NextResponse.json(
-            { error: "Error interno del servidor" },
+            { message: "Error interno del servidor" },
             { status: 500 }
         );
     }

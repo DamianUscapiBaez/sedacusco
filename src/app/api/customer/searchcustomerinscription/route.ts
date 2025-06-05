@@ -32,7 +32,7 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error("Error al obtener cliente:", error);
     return NextResponse.json(
-      { message: error instanceof Error ? error.message : "Error interno del servidor" },
+      { message: "Error interno del servidor" },
       { status: 500 }
     );
   }

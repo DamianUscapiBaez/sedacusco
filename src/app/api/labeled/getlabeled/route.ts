@@ -8,13 +8,7 @@ export async function GET(request: Request) {
 
         // Validación más robusta del ID
         if (!id || isNaN(Number(id))) {
-            return NextResponse.json(
-                {
-                    error: "Se requiere un ID válido",
-                    details: "El parámetro ID debe ser un número"
-                },
-                { status: 400 }
-            );
+            return NextResponse.json({ message: "Se requiere un ID válido" }, { status: 400 });
         }
 
         const numericId = Number(id);
@@ -35,25 +29,14 @@ export async function GET(request: Request) {
         });
 
         if (!labeled) {
-            return NextResponse.json(
-                {
-                    error: "Caja no encontrada",
-                    details: `No existe una caja con el ID ${numericId}`
-                },
-                { status: 404 }
-            );
+            return NextResponse.json({ message: "Caja no encontrada" }, { status: 404 });
         }
 
         // Estructura de respuesta consistente
-        return NextResponse.json({ data: labeled }, { status: 200 });
+        return NextResponse.json(labeled, { status: 200 });
 
     } catch (error) {
         console.error("Error en la API:", error);
-        return NextResponse.json(
-            {
-                error: "Error interno del servidor",
-            },
-            { status: 500 }
-        );
+        return NextResponse.json({ message: "Error interno del servidor" }, { status: 500 });
     }
 }

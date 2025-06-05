@@ -33,11 +33,7 @@ export async function DELETE(request: Request) {
             }
         });
 
-        return NextResponse.json({
-            success: true,
-            message: "Rol eliminado correctamente",
-            data: roleEliminado
-        }, { status: 200 });
+        return NextResponse.json(roleEliminado, { status: 200 });
 
     } catch (error) {
         console.error("Error al eliminar rol:", error);

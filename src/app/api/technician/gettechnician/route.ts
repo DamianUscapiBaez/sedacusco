@@ -8,7 +8,7 @@ export async function GET(request: Request) {
 
         if (!id) {
             return NextResponse.json(
-                { error: "ID is required" },
+                { message: "ID is required" },
                 { status: 400 }
             );
         }
@@ -16,7 +16,7 @@ export async function GET(request: Request) {
         const technicianId = Number(id);
         if (isNaN(technicianId)) {
             return NextResponse.json(
-                { error: "ID must be a number" },
+                { message: "ID must be a number" },
                 { status: 400 }
             );
         }
@@ -28,7 +28,7 @@ export async function GET(request: Request) {
 
         if (!technicianData) {
             return NextResponse.json(
-                { error: "Technician not found" },
+                { message: "Technician not found" },
                 { status: 404 }
             );
         }
@@ -38,7 +38,7 @@ export async function GET(request: Request) {
     } catch (error) {
         console.error("Error in API:", error);
         return NextResponse.json(
-            { error: "Internal Server Error" },
+            { message: "Internal Server Error" },
             { status: 500 }
         );
     }

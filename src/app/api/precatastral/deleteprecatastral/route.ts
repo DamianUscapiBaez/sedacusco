@@ -10,7 +10,7 @@ export async function DELETE(request: Request) {
         // 1️⃣ Validar que el ID existe
         if (!id || isNaN(id)) {
             return NextResponse.json(
-                { error: "ID de acta no válido o no proporcionado." },
+                { message: "ID de acta no válido o no proporcionado." },
                 { status: 400 }
             );
         }
@@ -24,7 +24,7 @@ export async function DELETE(request: Request) {
 
         if (!actaExistente) {
             return NextResponse.json(
-                { error: "El acta no existe o ya fue eliminada." },
+                { message: "El acta no existe o ya fue eliminada." },
                 { status: 404 }
             );
         }
@@ -54,7 +54,7 @@ export async function DELETE(request: Request) {
         console.error("Error al eliminar acta:", error);
         // Manejo específico de errores de Prisma
         return NextResponse.json(
-            { error: "Error interno del servidor al procesar la eliminación." },
+            { message: "Error interno del servidor al procesar la eliminación." },
             { status: 500 }
         );
     }

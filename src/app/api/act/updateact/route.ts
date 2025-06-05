@@ -32,7 +32,7 @@ export async function PUT(request: Request) {
 
         if (!fichaExistente) {
             return NextResponse.json(
-                { error: "No se encontró el registro para actualizar." },
+                { message: "No se encontró el registro para actualizar." },
                 { status: 404 } // Cambiado a 404 (Not Found)
             );
         }
@@ -55,14 +55,14 @@ export async function PUT(request: Request) {
 
         if (fichaDuplicada) {
             return NextResponse.json(
-                { error: "Ya existe un registro con ese número de ficha." },
+                { message: "Ya existe un registro con ese número de ficha." },
                 { status: 409 } // Conflict
             );
         }
 
         if (inscripcionExistente) {
             return NextResponse.json(
-                { error: "Ya existe un registro con este cliente." },
+                { message: "Ya existe un registro con este cliente." },
                 { status: 409 } // Conflict
             );
         }
@@ -162,21 +162,12 @@ export async function PUT(request: Request) {
             return actualizadoAct;
         });
 
-        return NextResponse.json({
-            success: true,
-            data: result,
-            message: "Acta actualizada exitosamente" +
-                (save_precatastral === "SI" ? " junto con su PreCatastral" : "")
-        }, { status: 200 });
+        return NextResponse.json(result, { status: 200 });
 
     } catch (error: any) {
         console.error("Error en la API:", error);
         return NextResponse.json(
-            {
-                success: false,
-                error: error.message || "Error interno del servidor",
-                ...(process.env.NODE_ENV === "development" && { stack: error.stack })
-            },
+            { message: "Error interno del servidor." },
             { status: 500 }
         );
     }

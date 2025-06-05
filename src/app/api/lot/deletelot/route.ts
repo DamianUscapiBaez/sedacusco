@@ -9,7 +9,7 @@ export async function DELETE(request: Request) {
         // 1️⃣ Validar el ID
         if (!id || isNaN(id)) {
             return NextResponse.json(
-                { error: "ID de lote no válido o no proporcionado." },
+                { message: "ID de lote no válido o no proporcionado." },
                 { status: 400 }
             );
         }
@@ -21,7 +21,7 @@ export async function DELETE(request: Request) {
 
         if (!loteExistente) {
             return NextResponse.json(
-                { error: "El lote no existe o ya fue eliminado." },
+                { message: "El lote no existe o ya fue eliminado." },
                 { status: 404 }
             );
         }
@@ -67,7 +67,7 @@ export async function DELETE(request: Request) {
     } catch (error) {
         console.error("Error al eliminar lote:", error);
         return NextResponse.json(
-            { error: "Error interno del servidor al procesar la eliminación." },
+            { message: "Error interno del servidor al procesar la eliminación." },
             { status: 500 }
         );
     }

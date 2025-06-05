@@ -22,7 +22,7 @@ export async function GET(request: Request) {
 
         if (totalCount === 0) {
             return NextResponse.json(
-                { error: "No se encontraron registros en el lote especificado" },
+                { message: "No se encontraron registros en el lote especificado" },
                 { status: 404 }
             );
         }
@@ -169,7 +169,7 @@ export async function GET(request: Request) {
     } catch (error) {
         console.error("Error en generación de reporte:", error);
         return NextResponse.json(
-            { error: "Error interno del servidor." },
+            { message: "Error interno del servidor." },
             { status: 500 }
         );
     }

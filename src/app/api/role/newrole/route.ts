@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/libs/db";
+import { error } from "console";
 
 export async function POST(request: Request) {
     try {
@@ -14,7 +15,7 @@ export async function POST(request: Request) {
         // Validación básica
         if (!name || !Array.isArray(permissions)) {
             return NextResponse.json(
-                { message: "Nombre y permisos son requeridos" },
+                { error: "Nombre y permisos son requeridos" },
                 { status: 400 }
             );
         }
@@ -26,7 +27,7 @@ export async function POST(request: Request) {
 
         if (existingRole) {
             return NextResponse.json(
-                { message: "El nombre del rol ya existe" },
+                { error: "El nombre del rol ya existe" },
                 { status: 400 }
             );
         }
@@ -40,7 +41,7 @@ export async function POST(request: Request) {
 
         if (existingPermissions.length !== permissions.length) {
             return NextResponse.json(
-                { message: "Algunos permisos no existen" },
+                { error: "Algunos permisos no existen" },
                 { status: 400 }
             );
         }

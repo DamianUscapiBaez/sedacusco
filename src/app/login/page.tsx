@@ -69,7 +69,7 @@ export default function LoginPage() {
                                             message: 'Mínimo 3 caracteres'
                                         }
                                     })}
-                                    className="mt-1"
+                                    className="mt-2"
                                     type="text"
                                     placeholder="usuario123"
                                     disabled={isSubmitting}
@@ -92,7 +92,7 @@ export default function LoginPage() {
                                             message: 'Mínimo 6 caracteres'
                                         }
                                     })}
-                                    className="mt-1"
+                                    className="mt-2"
                                     placeholder="••••••••"
                                     disabled={isSubmitting}
                                 />

@@ -88,7 +88,7 @@ export default function RolePage() {
                 Swal.fire({
                     icon: "error",
                     title: "Error",
-                    text: result.error || "Algo salió mal al guardar.",
+                    text: result.message || "Algo salió mal al guardar.",
                     timer: 2000,
                     showConfirmButton: false,
                     customClass: {

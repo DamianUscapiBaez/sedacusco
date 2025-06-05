@@ -75,12 +75,6 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error("Error in API:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Internal Server Error",
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
   }
 }

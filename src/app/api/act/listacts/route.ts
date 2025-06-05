@@ -126,7 +126,7 @@ export async function GET(request: Request) {
     console.error("Error in ACT API:", error);
     return NextResponse.json(
       {
-        error: "Internal Server Error",
+        message: "Internal Server Error",
         details: error instanceof Error ? error.message : String(error)
       },
       { status: 500 }

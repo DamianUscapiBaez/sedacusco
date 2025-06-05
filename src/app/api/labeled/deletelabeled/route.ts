@@ -9,7 +9,7 @@ export async function DELETE(request: Request) {
         // 1️⃣ Validar que el ID existe
         if (!id || isNaN(id)) {
             return NextResponse.json(
-                { error: "ID de caja no válido o no proporcionado." },
+                { message: "ID de caja no válido o no proporcionado." },
                 { status: 400 }
             );
         }
@@ -20,7 +20,7 @@ export async function DELETE(request: Request) {
 
         if (!cajaExistente) {
             return NextResponse.json(
-                { error: "El caja no existe o ya fue eliminada." },
+                { message: "El caja no existe o ya fue eliminada." },
                 { status: 404 }
             );
         }
@@ -33,17 +33,13 @@ export async function DELETE(request: Request) {
             }
         });
 
-        return NextResponse.json({
-            success: true,
-            message: "Caja eliminada correctamente",
-            data: cajaEliminado
-        }, { status: 200 });
+        return NextResponse.json(cajaEliminado, { status: 200 });
 
     } catch (error) {
         console.error("Error al eliminar caja:", error);
         // Manejo específico de errores de Prisma
         return NextResponse.json(
-            { error: "Error interno del servidor al procesar la eliminación." },
+            { message: "Error interno del servidor al procesar la eliminación." },
             { status: 500 }
         );
     }

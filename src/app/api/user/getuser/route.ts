@@ -7,7 +7,7 @@ export async function GET(request: Request) {
         const id = searchParams.get("id");
         if (!id) {
             return NextResponse.json(
-                { error: "ID is required" },
+                { message: "ID is required" },
                 { status: 400 }
             );
         }
@@ -31,7 +31,7 @@ export async function GET(request: Request) {
         });
         if (!record) {
             return NextResponse.json(
-                { error: "Record not found" },
+                { message: "Record not found" },
                 { status: 404 }
             );
         }
@@ -39,7 +39,7 @@ export async function GET(request: Request) {
     } catch (error) {
         console.error("Error in API:", error);
         return NextResponse.json(
-            { error: "Internal Server Error" },
+            { message: "Internal Server Error" },
             { status: 500 }
         );
     }
