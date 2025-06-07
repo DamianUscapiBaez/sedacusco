@@ -39,7 +39,16 @@ const precatastralSchema = z.object({
   box_state: z.enum(["BUENO", "MALO"]),
   cover_material: z.string().min(1, "Material requerido"),
   keys: z.string().length(1, "Debe ser un solo dígito").regex(/^[0-2]$/, "Solo puede ser 0, 1 o 2"),
-  observations: z.enum(["SIN_OBSERVACIONES", "MEDIDOR PROFUNDO", "RECHADO", "BRONCE"]),
+  observations: z.enum([
+    "SIN_OBSERVACIONES",
+    "MEDIDOR_PROFUNDO",
+    "RECHAZADO",
+    "CONEXION_BRONCE",
+    "CONEXION_ENTERRADA",
+    "CON_CEMENTO",
+    "CONEXION_3_4",
+    "DIFICIL_ACCESO"
+  ]).optional(),
   technicianId: z.number(),
   technician_dni: z.string().min(8, "DNI debe tener 8 dígitos").regex(/^\d+$/, "Solo números"),
   technician_name: z.string().min(1, "Nombre requerido")
@@ -239,13 +248,18 @@ export default function PreCatastralDialog({ open, onClose, editData, refreshTab
         showAlert('Error', result.error || 'No se pudo obtener el registro', 'error');
         return;
       }
-      reset(result.data);
+      const { customer, technician, meter, ...rest } = result.data;
+      reset({
+        ...DEFAULT_VALUES,
+        ...rest,
+        lotId: rest.lotId?.toString() || "2", // Aseguramos que sea string
+      });
 
-      if (result.data.customer) {
-        setValue('customerId', result.data.customer.id || 0);
-        setValue('customer_name', result.data.customer.customer_name || '');
-        setValue('customer_address', result.data.customer.address || '');
-        setValue('inscription_number', result.data.customer.inscription || '');
+      if (customer) {
+        setValue('customerId', customer.id || 0);
+        setValue('customer_name', customer.customer_name || '');
+        setValue('customer_address', customer.address || '');
+        setValue('inscription_number', customer.inscription || '');
       }
 
       if (result.data.technician) {

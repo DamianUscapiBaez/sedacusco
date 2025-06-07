@@ -303,7 +303,6 @@ export default function ActDialog({ open, onClose, editData, refreshTable }: { o
                 showAlert('Error', result.error || 'No se pudo obtener el registro', 'error');
                 return;
             }
-
             const { customer, technician, meter, ...rest } = result.data;
             reset({
                 ...DEFAULT_VALUES,

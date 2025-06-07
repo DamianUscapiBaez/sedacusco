@@ -34,7 +34,7 @@ export async function GET(request: Request) {
                 record.file_time.toISOString().slice(11, 16) :
                 null,
         };
-        return NextResponse.json(formattedRecord, { status: 200 });
+        return NextResponse.json({ data: formattedRecord }, { status: 200 });
     } catch (error) {
         console.error("Error in API:", error);
         return NextResponse.json(
