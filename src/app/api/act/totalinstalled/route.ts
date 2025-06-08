@@ -17,7 +17,7 @@ export async function GET(request: Request) {
       },
     });
 
-    return NextResponse.json(count, { status: 200 });
+    return NextResponse.json({ count });
   } catch (error) {
     console.error("Error in API:", error);
     return NextResponse.json(
