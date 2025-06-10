@@ -28,7 +28,6 @@ export async function GET(request: Request) {
         const date_start = new Date(`${params.startDate}T00:00:00-05:00`);
         const date_end = new Date(`${params.endDate}T23:59:59.999-05:00`);
 
-
         if (isNaN(date_start.getTime())) {
             return NextResponse.json(
                 { message: "Fecha de inicio inválida. Use formato YYYY-MM-DD" },
@@ -50,29 +49,36 @@ export async function GET(request: Request) {
             );
         }
 
-        // 2. Consulta a la base de datos
-        const whereConditions: Prisma.ActWhereInput = {
-            observations: "SIN_OBSERVACIONES",
-            deleted_at: null,
-            histories: {
-                some: {
-                    action: "CREATE",
-                    updated_at: {
-                        gte: date_start,
-                        lte: date_end
-                    },
-                },
+        // 2. Primero obtener los IDs de actas desde los historiales
+        const historyConditions: Prisma.ActHistoryWhereInput = {
+            action: "CREATE",
+            updated_at: {
+                gte: date_start,
+                lte: date_end
             },
+            act: {
+                observations: "SIN_OBSERVACIONES",
+                deleted_at: null
+            }
         };
 
-        const totalCount = await prisma.act.count({ where: whereConditions });
-        console.log(totalCount)
-        if (totalCount === 0) {
+        // Obtener solo los IDs de las actas que cumplen con el filtro
+        const actIds = await prisma.actHistory.findMany({
+            where: historyConditions,
+            distinct: ['actId'],
+            select: {
+                actId: true
+            }
+        });
+
+        if (actIds.length === 0) {
             return NextResponse.json(
                 { message: "No se encontraron registros para el rango de fechas especificado" },
                 { status: 404 }
             );
         }
+
+        const actIdsList = actIds.map(item => item.actId);
 
         // 3. Configuración del Excel
         const workbook = new ExcelJS.Workbook();
@@ -86,7 +92,7 @@ export async function GET(request: Request) {
             }
         });
 
-        // Definir estilos
+        // Definir estilos (igual que antes)
         const headerStyle: Partial<ExcelJS.Style> = {
             font: { bold: true, color: { argb: 'FFFFFF' }, size: 11 },
             fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: '4472C4' } },
@@ -110,7 +116,7 @@ export async function GET(request: Request) {
             }
         };
 
-        // Configurar columnas
+        // Configurar columnas (igual que antes)
         worksheet.columns = [
             { header: "Ficha", key: "file_number", width: 12 },
             { header: "Lote", key: "lote", width: 8 },
@@ -135,11 +141,15 @@ export async function GET(request: Request) {
 
         // 4. Procesamiento de datos paginado
         const PAGE_SIZE = 1000;
-        const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+        const totalPages = Math.ceil(actIdsList.length / PAGE_SIZE);
 
         for (let page = 0; page < totalPages; page++) {
+            const currentPageIds = actIdsList.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+
             const batch = await prisma.act.findMany({
-                where: whereConditions,
+                where: {
+                    id: { in: currentPageIds }
+                },
                 include: {
                     lot: { select: { name: true } },
                     customer: {
@@ -164,11 +174,7 @@ export async function GET(request: Request) {
                     },
                     histories: {
                         where: {
-                            action: "CREATE",
-                            updated_at: {
-                                gte: date_start,
-                                lte: date_end
-                            }
+                            action: "CREATE"
                         },
                         select: {
                             user: { select: { names: true } }
@@ -176,16 +182,13 @@ export async function GET(request: Request) {
                         orderBy: { updated_at: "desc" },
                         take: 1
                     }
-                },
-                skip: page * PAGE_SIZE,
-                take: PAGE_SIZE,
-                orderBy: { file_date: "asc" }
+                }
             });
 
             // Agregar datos a la hoja
             batch.forEach((record) => {
                 const row = worksheet.addRow({
-                    file_number: record.file_number || "-",
+                    file_number: Number(record.file_number) || "-",
                     lote: record.lot?.name || "-",
                     file_date: record.file_date?.toLocaleDateString('es-PE') || "-",
                     inscription: record.customer?.inscription || "-",
@@ -210,18 +213,9 @@ export async function GET(request: Request) {
         }
 
         // 5. Configuración final del documento
-        // Agregar título
-        // worksheet.insertRow(1, [`Reporte de Actas - ${date_start.toLocaleDateString('es-PE')} a ${date_end.toLocaleDateString('es-PE')}`]);
-        // worksheet.mergeCells('A1:M1');
-        // worksheet.getCell('A1').style = {
-        //     font: { bold: true, size: 14 },
-        //     alignment: { horizontal: 'center' }
-        // };
-
-        // Congelar encabezados
         worksheet.views = [{
             state: 'frozen',
-            ySplit: 2
+            ySplit: 1
         }];
 
         // 6. Generar y devolver el archivo
@@ -234,7 +228,7 @@ export async function GET(request: Request) {
             headers: new Headers({
                 "Content-Disposition": `attachment; filename="${filename}"`,
                 "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                "X-Total-Records": totalCount.toString()
+                "X-Total-Records": actIdsList.length.toString()
             })
         });
 

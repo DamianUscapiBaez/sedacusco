@@ -73,7 +73,8 @@ export async function GET(request: Request) {
         headerRow.font = {
             bold: true,
             size: 8,
-            name: 'Arial'
+            name: 'Arial',
+            color: { argb: 'FFFFFFFF' } // Texto blanco
         };
         headerRow.alignment = {
             horizontal: "center",
@@ -85,6 +86,7 @@ export async function GET(request: Request) {
             cell.fill = {
                 type: "pattern",
                 pattern: "solid",
+                fgColor: { argb: 'FF4472C4' } // Fondo azul (#4472C4)
             };
             cell.border = {
                 top: { style: "thin" },
